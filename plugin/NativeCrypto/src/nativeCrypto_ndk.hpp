@@ -46,18 +46,18 @@ namespace webworks
         std::string getSha512(std::string arg);
         std::string errorMessage(const char * message, int error);
 
-        std::string produceKey(std::string passphrase, size_t numBytes, size_t algorithm,
-                std::string type, size_t c);
+        std::string produceKeyByPassword(std::string passphrase, size_t numBytes, int algorithm,
+                std::string type, size_t c, std::string salt);
 
     private:
         NativeCryptoJS *m_pParent;
         sb_GlobalCtx sbCtx;
         sb_RNGCtx rngCtx;
 
-        std::string hash(size_t algorithm, std::string content);
-        std::string round(std::string prefix, std::string passphrase, size_t algorithm,
-                std::string type, size_t c);
-        size_t getCount(size_t c);
+        std::string hash(int algorithm, std::string content);
+        std::string round(std::string prefix, std::string passphrase, int algorithm,
+                std::string type, size_t c, std::string salt);
+        long getCount(size_t c);
     };
 
 } // namespace webworks

@@ -22,6 +22,8 @@
 #include "nativeCrypto_js.hpp"
 #include "nativeCrypto_ndk.hpp"
 #include "util/util.hpp"
+#include <QByteArray>
+#include <QString>
 
 using namespace std;
 
@@ -109,31 +111,66 @@ string NativeCryptoJS::InvokeMethod(const string& command)
     }
 
     if (strCommand == "hashSha1") {
-        result = m_pNativeCryptoController->getSha1(arg);
+        QByteArray toHashTmp(arg.c_str(), arg.length());
+        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
+        result = m_pNativeCryptoController->getSha1(toHash.data());
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha512") {
+        QByteArray toHashTmp(arg.c_str(), arg.length());
+        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
         result = m_pNativeCryptoController->getSha512(arg);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha384") {
+        QByteArray toHashTmp(arg.c_str(), arg.length());
+        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
         result = m_pNativeCryptoController->getSha384(arg);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha256") {
+        QByteArray toHashTmp(arg.c_str(), arg.length());
+        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
         result = m_pNativeCryptoController->getSha256(arg);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha224") {
+        QByteArray toHashTmp(arg.c_str(), arg.length());
+        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
         result = m_pNativeCryptoController->getSha224(arg);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashMd5") {
+        QByteArray toHashTmp(arg.c_str(), arg.length());
+        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
         result = m_pNativeCryptoController->getMd5(arg);
         result = m_pNativeCryptoController->toBase64(result);
     }
-    if (strCommand == "produceKey") {
-        // result= m_pNativeCryptoController->produceKey(arg);
+    if (strCommand == "produceKeyByPassword") {
+//        m_pLogger->debug(arg.c_str());
+        std::string passphrase=arg.substr(0, arg.find_first_of(" "));
+//        m_pLogger->debug(passphrase.c_str());
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string numBytesStr=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+//        m_pLogger->debug(numBytesStr.c_str());
+        std::string algorithmStr=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+//        m_pLogger->debug(algorithmStr.c_str());
+        std::string typeStr=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+//        m_pLogger->debug(typeStr.c_str());
+        std::string cStr=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+//        m_pLogger->debug(cStr.c_str());
+        std::string saltStr=arg;
+//        m_pLogger->debug(saltStr.c_str());
+        result = m_pNativeCryptoController->produceKeyByPassword(passphrase,
+                size_t(atoi(numBytesStr.c_str())),
+                int(atoi(algorithmStr.c_str())),
+                typeStr,
+                size_t(atoi(cStr.c_str())),
+                saltStr);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (result.length() > 0) {
@@ -145,26 +182,6 @@ string NativeCryptoJS::InvokeMethod(const string& command)
         return result;
     }
 
-    /*
-     if (strCommand == "testString") {
-     return m_pNativeCryptoController->templateTestString();
-     } else if (strCommand == "testStringInput") {
-     return m_pNativeCryptoController->templateTestString(arg);
-     } else if (strCommand == "templateProperty") {
-     // if arg exists we are setting property
-     if (arg != strCommand) {
-     m_pNativeCryptoController->setTemplateProperty(arg);
-     } else {
-     return m_pNativeCryptoController->getTemplateProperty();
-     }
-     } else if (strCommand == "testAsync") {
-     m_pNativeCryptoController->templateTestAsync(callbackId, arg);
-     } else if (strCommand == "templateStartThread") {
-     return m_pNativeCryptoController->templateStartThread(callbackId);
-     } else if (strCommand == "templateStopThread") {
-     return m_pNativeCryptoController->templateStopThread();
-     }
-     */
     strCommand.append(";");
     strCommand.append(command);
     return strCommand;

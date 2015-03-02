@@ -192,12 +192,18 @@ namespace webworks
     std::string NativeCryptoNDK::getSha512(std::string toHash)
     {
         size_t inputLength = toHash.length();
+
+                stringstream ss;
+                ss<< toHash.length();
+                std::string sss=ss.str();
+                m_pParent->getLog()->debug(("getSha512 "+sss+" "+toHash).data());
+
         //m_pParent->getLog()->debug(reinterpret_cast<const char*> (toHash.constData() ) );
 
         size_t digestLen = SB_SHA512_DIGEST_LEN;
         unsigned char digest[digestLen];
         for (size_t i = 0; i < digestLen; ++i) {
-            digest[i] = i;
+            //digest[i] = i;
         }
         if (SB_SUCCESS
                 != hu_SHA512Msg(digestLen, NULL, inputLength,

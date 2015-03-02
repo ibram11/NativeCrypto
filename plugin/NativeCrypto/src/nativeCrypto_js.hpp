@@ -37,7 +37,6 @@ private:
     // Definition of a pointer to the actual native extension code
     webworks::NativeCryptoNDK *m_pNativeCryptoController;
     webworks::Logger *m_pLogger;
-
 };
 
 #endif /* TemplateJS_HPP_ */

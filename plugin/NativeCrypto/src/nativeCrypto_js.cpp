@@ -15,6 +15,7 @@
  */
 
 #include <string>
+#include <sstream>
 #include <ctime>
 #include "../public/tokenizer.h"
 #include <json/reader.h>
@@ -113,43 +114,50 @@ string NativeCryptoJS::InvokeMethod(const string& command)
     if (strCommand == "ripemd160") {
         QByteArray toHashTmp(arg.c_str(), arg.length());
         QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        result = m_pNativeCryptoController->getRipemd160(toHash.data());
+        std::string toHashStr(toHash.data(), toHash.length());
+        result = m_pNativeCryptoController->getRipemd160(toHashStr);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha1") {
         QByteArray toHashTmp(arg.c_str(), arg.length());
         QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        result = m_pNativeCryptoController->getSha1(toHash.data());
+        std::string toHashStr(toHash.data(), toHash.length());
+        result = m_pNativeCryptoController->getSha1(toHashStr);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha512") {
         QByteArray toHashTmp(arg.c_str(), arg.length());
         QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        result = m_pNativeCryptoController->getSha512(arg);
+        std::string toHashStr(toHash.data(), toHash.length());
+        result = m_pNativeCryptoController->getSha512(toHashStr);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha384") {
         QByteArray toHashTmp(arg.c_str(), arg.length());
         QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        result = m_pNativeCryptoController->getSha384(arg);
+        std::string toHashStr(toHash.data(), toHash.length());
+        result = m_pNativeCryptoController->getSha384(toHashStr);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha256") {
         QByteArray toHashTmp(arg.c_str(), arg.length());
         QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        result = m_pNativeCryptoController->getSha256(arg);
+        std::string toHashStr(toHash.data(), toHash.length());
+        result = m_pNativeCryptoController->getSha256(toHashStr);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha224") {
         QByteArray toHashTmp(arg.c_str(), arg.length());
         QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        result = m_pNativeCryptoController->getSha224(arg);
+        std::string toHashStr(toHash.data(), toHash.length());
+        result = m_pNativeCryptoController->getSha224(toHashStr);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashMd5") {
         QByteArray toHashTmp(arg.c_str(), arg.length());
         QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        result = m_pNativeCryptoController->getMd5(arg);
+        std::string toHashStr(toHash.data(), toHash.length());
+        result = m_pNativeCryptoController->getMd5(toHashStr);
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "produceKeyByPassword") {

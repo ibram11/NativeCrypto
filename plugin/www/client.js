@@ -37,6 +37,17 @@ var _self = {},
         exec(success, fail, _ID, "hashMd5", { input: input });
         return result;
     };
+    _self.ripemd160 = function (input) {
+        var result,
+            success = function (data, response) {
+                result = data;
+            },
+            fail = function (data, response) {
+                console.log("Error: " + data);
+            };
+        exec(success, fail, _ID, "ripemd160", { input: input });
+        return result;
+    };
     _self.hashSha1 = function (input) {
         var result,
             success = function (data, response) {

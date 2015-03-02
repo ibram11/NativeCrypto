@@ -33,6 +33,7 @@
 #include "nativeCrypto_js.hpp"
 #include "util/util.hpp"
 #include <hurandom.h>
+#include <openssl/ripemd.h>
 
 namespace webworks
 {
@@ -207,6 +208,14 @@ namespace webworks
         return result;
     }
 
+    std::string NativeCryptoNDK::getRipemd160(std::string toHash){
+        size_t digestLen = RIPEMD160_DIGEST_LENGTH;
+        unsigned char digest[digestLen];
+        RIPEMD160(reinterpret_cast<const unsigned char *>(toHash.data()), toHash.length(), digest);
+        std::string result(reinterpret_cast<char *>(digest), digestLen);
+        return result;
+    }
+
     std::string NativeCryptoNDK::produceKeyByPassword(std::string passphraseB64, size_t numBytes,
             int algorithm, std::string type, size_t c, std::string saltB64)
     {
@@ -270,7 +279,8 @@ namespace webworks
             m_pParent->getLog()->debug("hash getSha1");
             return getSha1(content);
         } else if (algorithm == 3) {
-            return NULL;
+            m_pParent->getLog()->debug("hash getRipemd160");
+            return getRipemd160(content);
         } else if (algorithm == 8) {
             m_pParent->getLog()->debug("hash getSha256");
             return getSha256(content);
@@ -285,31 +295,6 @@ namespace webworks
             return getSha224(content);
         }
         return NULL;
-        /*
-         * case 1:
-         // - MD5 [HAC]
-         return this.md5(data);
-         case 2:
-         // - SHA-1 [FIPS180]
-         return this.sha1(data);
-         case 3:
-         // - RIPE-MD/160 [HAC]
-         return this.ripemd(data);
-         case 8:
-         // - SHA256 [FIPS180]
-         var sha256 = forge_sha256.create();
-         sha256.update(data);
-         return sha256.digest().getBytes();
-         case 9:
-         // - SHA384 [FIPS180]
-         return this.sha384(data);
-         case 10:
-         // - SHA512 [FIPS180]
-         return this.sha512(data);
-         case 11:
-         // - SHA224 [FIPS180]
-         return this.sha224(data);
-         */
     }
 
     long NativeCryptoNDK::getCount(size_t c)

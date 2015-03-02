@@ -38,6 +38,11 @@ module.exports = {
 	        var input = JSON.parse(decodeURIComponent(args.input));
 	        result.ok(nativeCrypto.getInstance().hashMd5(result.callbackId, input), false);
 	},
+    ripemd160: function (success, fail, args, env) {
+        var result = new PluginResult(args, env);
+        var input = JSON.parse(decodeURIComponent(args.input));
+        result.ok(nativeCrypto.getInstance().ripemd160(result.callbackId, input), false);
+    },
     hashSha1: function (success, fail, args, env) {
         var result = new PluginResult(args, env);
         var input = JSON.parse(decodeURIComponent(args.input));
@@ -112,6 +117,9 @@ JNEXT.NativeCrypto = function () {
     };
     self.hashMd5 = function (callbackId, input) {
         return JNEXT.invoke(self.m_id, "hashMd5 " + callbackId + " " + input );
+    };
+    self.ripemd160 = function (callbackId, input) {
+        return JNEXT.invoke(self.m_id, "ripemd160 " + callbackId + " " + input );
     };
     self.hashSha1 = function (callbackId, input) {
         return JNEXT.invoke(self.m_id, "hashSha1 " + callbackId + " " + input );

@@ -44,6 +44,7 @@ namespace webworks
         std::string getSha256(std::string arg);
         std::string getSha384(std::string arg);
         std::string getSha512(std::string arg);
+        std::string getRipemd160(std::string arg);
         std::string errorMessage(const char * message, int error);
 
         std::string produceKeyByPassword(std::string passphrase, size_t numBytes, int algorithm,

@@ -110,6 +110,12 @@ string NativeCryptoJS::InvokeMethod(const string& command)
         return m_pNativeCryptoController->ping();
     }
 
+    if (strCommand == "ripemd160") {
+        QByteArray toHashTmp(arg.c_str(), arg.length());
+        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
+        result = m_pNativeCryptoController->getRipemd160(toHash.data());
+        result = m_pNativeCryptoController->toBase64(result);
+    }
     if (strCommand == "hashSha1") {
         QByteArray toHashTmp(arg.c_str(), arg.length());
         QByteArray toHash = QByteArray::fromBase64(toHashTmp);

@@ -35,7 +35,8 @@ namespace webworks
         sb_GlobalCtx context();
         sb_RNGCtx randomContext();
         std::string ping();
-        std::string toBase64(std::string digest);
+        std::string toBase64(std::string content);
+        std::string fromBase64(std::string content);
 
         unsigned char * random(size_t size);
         std::string getMd5(std::string arg);

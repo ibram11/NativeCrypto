@@ -98,7 +98,7 @@ string NativeCryptoJS::InvokeMethod(const string& command)
 {
     clock_t begin = clock();
     // format must be: "command callbackId params"
-    m_pLogger->debug(command.c_str());
+//    m_pLogger->debug(command.c_str());
     size_t commandIndex = command.find_first_of(" ");
     std::string strCommand = command.substr(0, commandIndex);
     size_t callbackIndex = command.find_first_of(" ", commandIndex + 1);
@@ -107,57 +107,38 @@ string NativeCryptoJS::InvokeMethod(const string& command)
     // based on the command given, run the appropriate method in template_ndk.cpp
 
     std::string result = "";
+
+    m_pLogger->debug(strCommand.c_str());
+
     if (strCommand == "ping") {
         return m_pNativeCryptoController->ping();
     }
-
     if (strCommand == "ripemd160") {
-        QByteArray toHashTmp(arg.c_str(), arg.length());
-        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        std::string toHashStr(toHash.data(), toHash.length());
-        result = m_pNativeCryptoController->getRipemd160(toHashStr);
+        result = m_pNativeCryptoController->getRipemd160(m_pNativeCryptoController->fromBase64(arg));
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha1") {
-        QByteArray toHashTmp(arg.c_str(), arg.length());
-        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        std::string toHashStr(toHash.data(), toHash.length());
-        result = m_pNativeCryptoController->getSha1(toHashStr);
+        result = m_pNativeCryptoController->getSha1(m_pNativeCryptoController->fromBase64(arg));
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha512") {
-        QByteArray toHashTmp(arg.c_str(), arg.length());
-        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        std::string toHashStr(toHash.data(), toHash.length());
-        result = m_pNativeCryptoController->getSha512(toHashStr);
+        result = m_pNativeCryptoController->getSha512(m_pNativeCryptoController->fromBase64(arg));
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha384") {
-        QByteArray toHashTmp(arg.c_str(), arg.length());
-        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        std::string toHashStr(toHash.data(), toHash.length());
-        result = m_pNativeCryptoController->getSha384(toHashStr);
+        result = m_pNativeCryptoController->getSha384(m_pNativeCryptoController->fromBase64(arg));
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha256") {
-        QByteArray toHashTmp(arg.c_str(), arg.length());
-        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        std::string toHashStr(toHash.data(), toHash.length());
-        result = m_pNativeCryptoController->getSha256(toHashStr);
+        result = m_pNativeCryptoController->getSha256(m_pNativeCryptoController->fromBase64(arg));
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashSha224") {
-        QByteArray toHashTmp(arg.c_str(), arg.length());
-        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        std::string toHashStr(toHash.data(), toHash.length());
-        result = m_pNativeCryptoController->getSha224(toHashStr);
+        result = m_pNativeCryptoController->getSha224(m_pNativeCryptoController->fromBase64(arg));
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "hashMd5") {
-        QByteArray toHashTmp(arg.c_str(), arg.length());
-        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        std::string toHashStr(toHash.data(), toHash.length());
-        result = m_pNativeCryptoController->getMd5(toHashStr);
+        result = m_pNativeCryptoController->getMd5(m_pNativeCryptoController->fromBase64(arg));
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "produceKeyByPassword") {

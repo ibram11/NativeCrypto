@@ -141,6 +141,14 @@ string NativeCryptoJS::InvokeMethod(const string& command)
         result = m_pNativeCryptoController->getMd5(m_pNativeCryptoController->fromBase64(arg));
         result = m_pNativeCryptoController->toBase64(result);
     }
+    if (strCommand == "aes128ecb") {
+        std::string keyB64=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string blockB64=arg.substr(0, arg.find_first_of(" "));
+        result = m_pNativeCryptoController->getAes128ecb(m_pNativeCryptoController->fromBase64(keyB64), m_pNativeCryptoController->fromBase64(blockB64));
+        result = m_pNativeCryptoController->toBase64(result);
+    }
+
     if (strCommand == "produceKeyByPassword") {
 //        m_pLogger->debug(arg.c_str());
         std::string passphrase=arg.substr(0, arg.find_first_of(" "));

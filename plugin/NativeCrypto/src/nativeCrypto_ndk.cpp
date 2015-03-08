@@ -26,6 +26,7 @@
 #include <husha2.h>
 #include <hurandom.h>
 #include <huseed.h>
+#include <huaes.h>
 #include <sbreturn.h>
 #include <QByteArray>
 #include <QString>
@@ -68,6 +69,10 @@ namespace webworks
     {
         return sbCtx;
     }
+    sb_RNGCtx NativeCryptoNDK::randomContext()
+    {
+        return rngCtx;
+    }
 
     std::string NativeCryptoNDK::ping()
     {
@@ -90,19 +95,20 @@ namespace webworks
 
     std::string NativeCryptoNDK::toBase64(std::string digest)
     {
-        QByteArray text = QByteArray(reinterpret_cast<const char *>(digest.data()), digest.length());
+        QByteArray text = QByteArray(reinterpret_cast<const char *>(digest.data()),
+                digest.length());
         return text.toBase64().data();
     }
 
     std::string NativeCryptoNDK::fromBase64(std::string text)
-        {
-               QByteArray toHashTmp(text.c_str(), text.length());
-               QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-               std::string toHashStr(toHash.constData(), toHash.length());
-               toHashTmp=NULL;
-               toHash=NULL;
-               return toHashStr;
-        }
+    {
+        QByteArray toHashTmp(text.c_str(), text.length());
+        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
+        std::string toHashStr(toHash.constData(), toHash.length());
+        toHashTmp = NULL;
+        toHash = NULL;
+        return toHashStr;
+    }
 
     std::string NativeCryptoNDK::getMd5(std::string toHash)
     {
@@ -116,7 +122,8 @@ namespace webworks
 //        }
         if (SB_SUCCESS
                 != hu_MD5Msg(digestLen, NULL, inputLength,
-                        reinterpret_cast<const unsigned char *>(toHash.data()), digest, context())) {
+                        reinterpret_cast<const unsigned char *>(toHash.data()), digest,
+                        context())) {
             throw std::string("Could not call hash function");
         }
         std::string result(reinterpret_cast<char *>(digest), digestLen);
@@ -137,7 +144,8 @@ namespace webworks
 //        }
         if (SB_SUCCESS
                 != hu_SHA1Msg(digestLen, NULL, inputLength,
-                        reinterpret_cast<const unsigned char *>(toHash.data()), digest, context())) {
+                        reinterpret_cast<const unsigned char *>(toHash.data()), digest,
+                        context())) {
             throw std::string("Could not call hash function");
         }
         std::string result(reinterpret_cast<char *>(digest), digestLen);
@@ -157,7 +165,8 @@ namespace webworks
 //        }
         if (SB_SUCCESS
                 != hu_SHA224Msg(digestLen, NULL, inputLength,
-                        reinterpret_cast<const unsigned char *>(toHash.data()), digest, context())) {
+                        reinterpret_cast<const unsigned char *>(toHash.data()), digest,
+                        context())) {
             throw std::string("Could not call hash function");
         }
         std::string result(reinterpret_cast<char *>(digest), digestLen);
@@ -173,7 +182,8 @@ namespace webworks
 //        }
         if (SB_SUCCESS
                 != hu_SHA256Msg(digestLen, NULL, inputLength,
-                        reinterpret_cast<const unsigned char *>(toHash.data()), digest, context())) {
+                        reinterpret_cast<const unsigned char *>(toHash.data()), digest,
+                        context())) {
             throw std::string("Could not call hash function");
         }
         std::string result(reinterpret_cast<char *>(digest), digestLen);
@@ -192,7 +202,8 @@ namespace webworks
 //        }
         if (SB_SUCCESS
                 != hu_SHA384Msg(digestLen, NULL, inputLength,
-                        reinterpret_cast<const unsigned char *>(toHash.data()), digest, context())) {
+                        reinterpret_cast<const unsigned char *>(toHash.data()), digest,
+                        context())) {
             throw std::string("Could not call hash function");
         }
         std::string result(reinterpret_cast<char *>(digest), digestLen);
@@ -208,7 +219,7 @@ namespace webworks
 //                std::string sss=ss.str();
 //                m_pParent->getLog()->debug(("getSha512 "+sss+" "+toHash).data());
 
-        //m_pParent->getLog()->debug(reinterpret_cast<const char*> (toHash.constData() ) );
+//m_pParent->getLog()->debug(reinterpret_cast<const char*> (toHash.constData() ) );
 
         size_t digestLen = SB_SHA512_DIGEST_LEN;
         unsigned char digest[digestLen];
@@ -217,14 +228,54 @@ namespace webworks
 //        }
         if (SB_SUCCESS
                 != hu_SHA512Msg(digestLen, NULL, inputLength,
-                        reinterpret_cast<const unsigned char *>(toHash.data()), digest, context())) {
+                        reinterpret_cast<const unsigned char *>(toHash.data()), digest,
+                        context())) {
             throw std::string("Could not call hash function");
         }
         std::string result(reinterpret_cast<char *>(digest), digestLen);
         return result;
     }
 
-    std::string NativeCryptoNDK::getRipemd160(std::string toHash){
+    std::string NativeCryptoNDK::getAes128ecb(std::string keyStr, std::string blockStr)
+    {
+        int mode = SB_AES_ECB;
+        unsigned char resultBytes[blockStr.length()];
+
+        stringstream ss;
+        ss << blockStr.length();
+        std::string sss = ss.str();
+//        m_pParent->getLog()->debug(("getAes128ecb " + sss + " " + keyStr+ " "+ blockStr).data());
+
+        if ((blockStr.length() % 16) != 0) {
+            m_pParent->getLog()->error("Input not multiple of 128 bits. Use padding.");
+            throw std::string("Input not multiple of 128 bits. Use padding.");
+        }
+
+        sb_Params params;
+        hu_AESParamsCreate(SB_AES_ECB, SB_AES_128_BLOCK_BITS, NULL, NULL, &params, this->context());
+//        m_pParent->getLog()->debug("Params created");
+//        AESParams params(*this, mode, SB_AES_128_BLOCK_BITS, false);
+
+        sb_Key key;
+        hu_AESKeySet(params, keyStr.length() * 8, reinterpret_cast<const unsigned char *>(keyStr.data()), &key, this->context());
+//        AESKey key(params, keyStr);
+//        m_pParent->getLog()->debug("Key created");
+
+        sb_Context context;
+        hu_AESBeginV2(params, key, mode, 0, NULL, &context, this->context());
+//        AESContext context(params, key, mode);
+//        m_pParent->getLog()->debug("Context created");
+//        context.crypt(blockStr, resultBytes, true);
+
+        hu_AESEncrypt(context, blockStr.length(), reinterpret_cast<const unsigned char *>(blockStr.data()), resultBytes, this->context());
+
+        std::string result(reinterpret_cast<char *>(resultBytes), blockStr.length());
+//        m_pParent->getLog()->debug(("getAes128ecb result: "+ result).data());
+        return result;
+    }
+
+    std::string NativeCryptoNDK::getRipemd160(std::string toHash)
+    {
         size_t digestLen = RIPEMD160_DIGEST_LENGTH;
         unsigned char digest[digestLen];
         RIPEMD160(reinterpret_cast<const unsigned char *>(toHash.data()), toHash.length(), digest);
@@ -235,8 +286,8 @@ namespace webworks
     std::string NativeCryptoNDK::produceKeyByPassword(std::string passphraseB64, size_t numBytes,
             int algorithm, std::string type, size_t c, std::string saltB64)
     {
-        std::string passphrase=fromBase64(passphraseB64);
-        std::string salt=fromBase64(saltB64);
+        std::string passphrase = fromBase64(passphraseB64);
+        std::string salt = fromBase64(saltB64);
         std::string result = "";
         std::string prefix = "";
 //        stringstream ss;
@@ -244,12 +295,12 @@ namespace webworks
 //        string str = ss.str();
 //        m_pParent->getLog()->debug(("loop until len "+str).c_str());
         while (result.length() < numBytes) {
-            result+=(round(prefix, passphrase, algorithm, type, c, salt));
-            prefix+=('\0');
+            result += (round(prefix, passphrase, algorithm, type, c, salt));
+            prefix += ('\0');
 //            m_pParent->getLog()->debug("produceKeyByPassword loop finished ");
         }
-        if (result.length()>numBytes){
-            result=result.substr(0, numBytes);
+        if (result.length() > numBytes) {
+            result = result.substr(0, numBytes);
         }
 //        m_pParent->getLog()->debug("produceKeyByPassword finished");
         return result;
@@ -268,7 +319,7 @@ namespace webworks
         if (type == "iterated") {
             std::string isp;
             size_t count = getCount(c);
-            std::string data = salt+passphrase;
+            std::string data = salt + passphrase;
             while (isp.length() < count) {
                 isp += data;
             }
@@ -310,7 +361,106 @@ namespace webworks
     long NativeCryptoNDK::getCount(size_t c)
     {
         size_t expbias = 6;
-        return  (16 + (c & 15)) << ((c >> 4) + expbias);
+        return (16 + (c & 15)) << ((c >> 4) + expbias);
     }
+//
+//    AESParams::AESParams(NativeCryptoNDK & own, int mode, size_t blockLength, bool withRandom) :
+//            owner(own), params(NULL)
+//    {
+//        int rc = hu_AESParamsCreate(mode, blockLength, withRandom ? owner.randomContext() : NULL,
+//                NULL, &params, owner.context());
+//        if (rc != SB_SUCCESS) {
+//            stringstream ss;
+//            ss << rc;
+//            std::string sss = ss.str();
+//        owner.m_pParent->getLog()->debug(("Could not create AES params "+sss).data());
+////            throw errorMessage("Could not create AES params", rc);
+//    }
+//}
+//
+//AESParams::~AESParams()
+//{
+//    if (params != NULL) {
+//        hu_AESParamsDestroy(&params, owner.context());
+//        params = NULL;
+//    }
+//}
+//AESKey::AESKey(AESParams & own, std::string & keyStr) :
+//        params(own), key(NULL)
+//{
+//    int rc = hu_AESKeySet(params.params, keyStr.length() * 8,
+//            reinterpret_cast<const unsigned char *>(keyStr.data()), &key, params.owner.context());
+//    if (rc != SB_SUCCESS) {
+////            std::stringstream s;
+////            s << "Could not set AES Key" << rc;
+////            s << " dtLen: " << dt.dataLen;
+////            throw s.str();
+//        stringstream ss;
+//        ss << rc;
+//        std::string sss = ss.str();
+//        own.owner.m_pParent->getLog()->debug(("Could not set AES Key " + sss).data());
+//    }
+//}
+//
+//AESKey::AESKey(AESParams & own, size_t size) :
+//        params(own), key(NULL)
+//{
+//    if (key != NULL) {
+//        throw std::string("Key already exists");
+//    }
+//    int rc = hu_AESKeyGen(params.params, size, &key, params.owner.context());
+//    if (rc != SB_SUCCESS) {
+////            throw errorMessage("Could not generate AES key", rc);
+//        stringstream ss;
+//        ss << rc;
+//        std::string sss = ss.str();
+//        own.owner.m_pParent->getLog()->debug(("Could not generate AES key " + sss).data());
+//    }
+//}
+//
+//AESKey::~AESKey()
+//{
+//    if (key != NULL) {
+//        hu_AESKeyDestroy(params.params, &key, params.owner.context());
+//    }
+//}
+//
+//AESContext::AESContext(AESParams & p, AESKey & key, int mode) :
+//        params(p), context(NULL)
+//{
+//
+//    unsigned char iv[0];
+//    int rc = hu_AESBeginV2(params.params, key.key, mode, 0, iv, &context, params.owner.context());
+//    if (rc != SB_SUCCESS) {
+////            throw errorMessage("Could not create AES context", rc);
+//        stringstream ss;
+//        ss << rc;
+//        std::string sss = ss.str();
+//        p.owner.m_pParent->getLog()->debug(("Could not create AES context " + sss).data());
+//    }
+//}
+//
+//AESContext::~AESContext()
+//{
+//    if (context != NULL) {
+//        hu_AESEnd(&context, params.owner.context());
+//        context = NULL;
+//    }
+//}
+//
+//void AESContext::crypt(std::string & in, unsigned char * out, bool isEncrypt)
+//{
+//    int rc(0);
+//    if (isEncrypt) {
+//        rc = hu_AESEncrypt(context, in.length(), reinterpret_cast<const unsigned char *>(in.data()),
+//                out, params.owner.context());
+//    } else {
+//        rc = hu_AESDecrypt(context, in.length(), reinterpret_cast<const unsigned char *>(in.data()),
+//                out, params.owner.context());
+//    }
+//    if (rc != SB_SUCCESS) {
+//            throw std::string("Could not encrypt data", rc);
+//    }
+//}
 
 } /* namespace webworks */

@@ -27,6 +27,11 @@ module.exports = {
 	// These methods call into JNEXT.GSECrypto which handles the
 	// communication through the JNEXT plugin to gseCrypto_js.cpp
 
+    aes128ecb: function (success, fail, args, env) {
+        var result = new PluginResult(args, env);
+        var input = JSON.parse(decodeURIComponent(args.input));
+        result.ok(nativeCrypto.getInstance().aes128ecb(result.callbackId, input.key, input.block), false);
+    },
     produceKeyByPassword: function (success, fail, args, env) {
         var result = new PluginResult(args, env);
         var input = JSON.parse(decodeURIComponent(args.input));
@@ -114,6 +119,9 @@ JNEXT.NativeCrypto = function () {
 
     self.produceKeyByPassword = function (callbackId, password, numBytes, algorithm, type, c, salt) {
         return JNEXT.invoke(self.m_id, "produceKeyByPassword " + callbackId + " " + password +" "+ numBytes +" "+algorithm+" "+type+" "+c+" "+salt);
+    };
+    self.aes128ecb = function (callbackId, key, block) {
+        return JNEXT.invoke(self.m_id, "aes128ecb " + callbackId + " " + key +" "+ block);
     };
     self.hashMd5 = function (callbackId, input) {
         return JNEXT.invoke(self.m_id, "hashMd5 " + callbackId + " " + input );

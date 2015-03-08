@@ -46,10 +46,18 @@ namespace webworks
         std::string getSha384(std::string arg);
         std::string getSha512(std::string arg);
         std::string getRipemd160(std::string arg);
+
+        std::string getAes128ecb(std::string key, std::string block);
+
         std::string errorMessage(const char * message, int error);
 
         std::string produceKeyByPassword(std::string passphrase, size_t numBytes, int algorithm,
                 std::string type, size_t c, std::string salt);
+
+
+        friend class AESParams;
+        friend class AESKey;
+        friend class AESContext;
 
     private:
         NativeCryptoJS *m_pParent;
@@ -61,6 +69,44 @@ namespace webworks
                 std::string type, size_t c, std::string salt);
         long getCount(size_t c);
     };
+//
+//    class AESParams {
+//    public:
+//        AESParams(NativeCryptoNDK & owner, int mode, size_t blockLen, bool withRandom);
+//        virtual ~AESParams();
+//
+//    private:
+//        NativeCryptoNDK & owner;
+//        sb_Params params;
+//
+//        friend class AESKey;
+//        friend class AESContext;
+//    };
+//    class AESKey {
+//    public:
+//        AESKey(AESParams & owner, size_t size);
+//        AESKey(AESParams & owner, std::string & dt);
+//        virtual ~AESKey();
+//
+//        void get(std::string & dt);
+//    private:
+//        AESParams & params;
+//        sb_Key key;
+//
+//        friend class AESContext;
+//    };
+//    /**
+//     * c++ wrapper for AES sb_Context
+//     */
+//    class AESContext {
+//    public:
+//        AESContext(AESParams &, AESKey &, int mode);
+//        virtual ~AESContext();
+//        void crypt(std::string & in, unsigned char * out, bool isEncrypt);
+//    private:
+//        AESParams & params;
+//        sb_Context context;
+//    };
 
 } // namespace webworks
 

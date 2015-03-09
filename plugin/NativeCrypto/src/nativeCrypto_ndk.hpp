@@ -64,6 +64,9 @@ namespace webworks
         sb_GlobalCtx sbCtx;
         sb_RNGCtx rngCtx;
 
+        void fromB64(std::string encoded, unsigned char * & data, size_t & dataLen);
+        unsigned char b64Nibble(unsigned char c);
+
         std::string hash(int algorithm, std::string content);
         std::string round(std::string prefix, std::string passphrase, int algorithm,
                 std::string type, size_t c, std::string salt);

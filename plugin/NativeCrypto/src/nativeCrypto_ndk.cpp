@@ -102,12 +102,83 @@ namespace webworks
 
     std::string NativeCryptoNDK::fromBase64(std::string text)
     {
-        QByteArray toHashTmp(text.c_str(), text.length());
-        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
-        std::string toHashStr(toHash.constData(), toHash.length());
-        toHashTmp = NULL;
-        toHash = NULL;
-        return toHashStr;
+//        QByteArray toHashTmp(text.c_str(), text.length());
+//        QByteArray toHash = QByteArray::fromBase64(toHashTmp);
+//        std::string toHashStr(toHash.constData(), toHash.length());
+//        toHashTmp = NULL;
+//        toHash = NULL;
+//        return toHashStr;
+        size_t dataLen;
+        unsigned char* data;
+        this->fromB64(text, data, dataLen);
+        std::string result(reinterpret_cast<const char *>(data), dataLen);
+        return result;
+    }
+
+    unsigned char NativeCryptoNDK::b64Nibble(unsigned char c) {
+        if (c >= 'A' && c <= 'Z') {
+            return c - 'A';
+        } else if (c >= 'a' && c <= 'z') {
+            return c - 'a' + 26;
+        } else if (c >= '0' && c <= '9') {
+            return c - '0' + 52;
+        } else if (c == '+') {
+            return 62;
+        } else if (c == '/') {
+            return 63;
+        }
+        return 0;
+    }
+
+    void NativeCryptoNDK::fromB64(std::string encoded, unsigned char * & data, size_t & dataLen) {
+        std::string encoded2;
+        for (size_t i = 0; i < encoded.length(); ++i) {
+            char c = encoded[i];
+            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+                    || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '=') {
+                encoded2 += c;
+            } else {
+                    throw std::string("Base64 data invalid");
+            }
+        }
+
+        if (encoded2.length() == 0) {
+            data = NULL;
+            dataLen = 0;
+            return;
+        }
+
+        if (encoded2.length() % 4 != 0) {
+            throw std::string("Base64 encoded length should by multiple of 4");
+        }
+
+        dataLen = (encoded2.length() / 4) * 3;
+
+        if (encoded2[encoded2.length() - 1] == '=') {
+            dataLen--;
+            if (encoded2[encoded2.length() - 2] == '=') {
+                dataLen--;
+            }
+        }
+
+        data = new unsigned char[dataLen];
+
+        int offset = 0;
+        size_t outOffset = 0;
+
+        for (size_t i = 0; i < dataLen; i += 3) {
+            unsigned char v[3];
+            unsigned char e[4];
+            for (int j = 0; j < 4; ++j) {
+                e[j] = b64Nibble(encoded2[offset++]);
+            }
+            v[0] = e[0] << 2 | ((e[1] >> 4) & 0x3);
+            v[1] = e[1] << 4 | ((e[2] >> 2) & 0xf);
+            v[2] = e[2] << 6 | ((e[3] & 0x3f));
+            for (int j = 0; j < 3 && outOffset < dataLen; ++j) {
+                data[outOffset++] = v[j];
+            }
+        }
     }
 
     std::string NativeCryptoNDK::getMd5(std::string toHash)

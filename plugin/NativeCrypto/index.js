@@ -141,7 +141,7 @@ JNEXT.NativeCrypto = function () {
     self.aes128ecb = function (callbackId, key, block) {
         return JNEXT.invoke(self.m_id, "aes128ecb " + callbackId + " " + key +" "+ block);
     };
-    self.rsaEncrypt = function (callbackId, eLen, nLen, e, n, message) {
+    self.rsaEncrypt = function (callbackId, nLen, e, n, message) {
         return JNEXT.invoke(self.m_id, "rsaEncrypt " + callbackId + " " + nLen+ " " + e+ " " + n+ " " + message);
     };
     self.rsaDecrypt = function (callbackId, eLen, nLen, dLen, pLen, qLen, e, n, d, p, q, message) {

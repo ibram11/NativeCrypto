@@ -142,8 +142,6 @@ string NativeCryptoJS::InvokeMethod(const string& command)
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "rsaEncrypt") {
-        std::string eLen=arg.substr(0, arg.find_first_of(" "));
-        arg=arg.substr(arg.find_first_of(" ")+1);
         std::string nLen=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
         std::string eB64=arg.substr(0, arg.find_first_of(" "));

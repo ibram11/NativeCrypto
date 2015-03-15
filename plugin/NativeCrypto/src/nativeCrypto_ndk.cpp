@@ -347,9 +347,9 @@ namespace webworks
                             std::string input){
         sb_Params params;
         stringstream ss;
-
+        m_pParent->getLog()->debug("start");
         int stepResult=hu_RSAParamsCreate(nLen, this->randomContext(), NULL, &params,  this->context());
-
+        m_pParent->getLog()->debug("params created");
         sb_PublicKey publicKey;
         sb_PrivateKey privateKey;
 
@@ -361,8 +361,8 @@ namespace webworks
         ss.clear();
 
         stepResult=hu_RSAKeySet(params,
-                         e.length(), reinterpret_cast<const unsigned char *>(e.data()),
-//                         0, NULL,
+//                         e.length(), reinterpret_cast<const unsigned char *>(e.data()),
+                         0, NULL,
                          n.length(), reinterpret_cast<const unsigned char *>(n.data()),
                          0, NULL,
                          0, NULL,

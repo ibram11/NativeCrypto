@@ -383,8 +383,8 @@ namespace webworks
         if (stepResult!=SB_SUCCESS){
             ss << stepResult;
             sss = ss.str();
-            m_pParent->getLog()->error(("returning error!"+sss).data());
-            return "ERROR "+sss;
+            m_pParent->getLog()->error(("keys error!"+sss).data());
+            return "ERROR keys"+sss;
         }else{
             m_pParent->getLog()->debug("keys created");
         }
@@ -396,8 +396,8 @@ namespace webworks
         if (stepResult!=SB_SUCCESS){
             ss << stepResult;
             sss = ss.str();
-            m_pParent->getLog()->error(("returning error!"));
-            return "ERROR "+sss;
+            m_pParent->getLog()->error(("encryption error!"));
+            return "ERROR encryption"+sss;
         }else{
             m_pParent->getLog()->debug(("encrypted "+sss).data());
         }

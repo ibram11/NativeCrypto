@@ -98,7 +98,7 @@ string NativeCryptoJS::InvokeMethod(const string& command)
 {
     clock_t begin = clock();
     // format must be: "command callbackId params"
-//    m_pLogger->debug(command.c_str());
+    m_pLogger->debug(command.c_str());
     size_t commandIndex = command.find_first_of(" ");
     std::string strCommand = command.substr(0, commandIndex);
     size_t callbackIndex = command.find_first_of(" ", commandIndex + 1);
@@ -140,6 +140,58 @@ string NativeCryptoJS::InvokeMethod(const string& command)
     if (strCommand == "hashMd5") {
         result = m_pNativeCryptoController->getMd5(m_pNativeCryptoController->fromBase64(arg));
         result = m_pNativeCryptoController->toBase64(result);
+    }
+    if (strCommand == "rsaEncrypt") {
+        std::string eLen=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string nLen=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string eB64=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string nB64=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string mB64=arg.substr(0, arg.find_first_of(" "));
+        result = m_pNativeCryptoController->encodeRsa(
+                size_t(atoi(nLen.c_str())),
+                m_pNativeCryptoController->fromBase64(eB64), m_pNativeCryptoController->fromBase64(nB64),
+                m_pNativeCryptoController->fromBase64(mB64)
+                );
+        m_pLogger->debug(result.data());
+        //result = m_pNativeCryptoController->toBase64(result);
+    }
+    if (strCommand == "rsaDecrypt") {
+        std::string eLen=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string nLen=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string dLen=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string pLen=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string qLen=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+
+        std::string eB64=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string nB64=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string dB64=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string pB64=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string qB64=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string mB64=arg.substr(0, arg.find_first_of(" "));
+        result = m_pNativeCryptoController->decodeRsa(
+                size_t(atoi(eLen.c_str())), size_t(atoi(nLen.c_str())), size_t(atoi(dLen.c_str())),
+                size_t(atoi(pLen.c_str())), size_t(atoi(qLen.c_str())),
+                m_pNativeCryptoController->fromBase64(eB64), m_pNativeCryptoController->fromBase64(nB64),
+                m_pNativeCryptoController->fromBase64(dB64), m_pNativeCryptoController->fromBase64(pB64),
+                m_pNativeCryptoController->fromBase64(qB64),
+                m_pNativeCryptoController->fromBase64(mB64)
+                );
+        result = m_pNativeCryptoController->toBase64(result);
+
     }
     if (strCommand == "aes128ecb") {
         std::string keyB64=arg.substr(0, arg.find_first_of(" "));

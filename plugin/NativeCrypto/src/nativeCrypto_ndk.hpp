@@ -54,7 +54,12 @@ namespace webworks
         std::string produceKeyByPassword(std::string passphrase, size_t numBytes, int algorithm,
                 std::string type, size_t c, std::string salt);
 
-
+        std::string decodeRsa(size_t eLen, size_t nLen, size_t dLen, size_t pLen, size_t qLen,
+                std::string e, std::string n, std::string d, std::string p, std::string q,
+                std::string input);
+        std::string encodeRsa(size_t nLen,
+                        std::string e, std::string n,
+                        std::string input);
         friend class AESParams;
         friend class AESKey;
         friend class AESContext;

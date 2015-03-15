@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2013 BlackBerry Limited
  *
+ * Copyright (c) 2013 BlackBerry Limited
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@
 #include <hurandom.h>
 #include <huseed.h>
 #include <huaes.h>
+#include <hursa.h>
 #include <sbreturn.h>
 #include <QByteArray>
 #include <QString>
@@ -115,20 +116,7 @@ namespace webworks
         return result;
     }
 
-    unsigned char NativeCryptoNDK::b64Nibble(unsigned char c) {
-        if (c >= 'A' && c <= 'Z') {
-            return c - 'A';
-        } else if (c >= 'a' && c <= 'z') {
-            return c - 'a' + 26;
-        } else if (c >= '0' && c <= '9') {
-            return c - '0' + 52;
-        } else if (c == '+') {
-            return 62;
-        } else if (c == '/') {
-            return 63;
-        }
-        return 0;
-    }
+
 
     void NativeCryptoNDK::fromB64(std::string encoded, unsigned char * & data, size_t & dataLen) {
         std::string encoded2;
@@ -354,6 +342,114 @@ namespace webworks
         return result;
     }
 
+    std::string NativeCryptoNDK::encodeRsa(size_t nLen,
+                            std::string e, std::string n,
+                            std::string input){
+        sb_Params params;
+        stringstream ss;
+
+        int stepResult=hu_RSAParamsCreate(nLen, this->randomContext(), NULL, &params,  this->context());
+
+        sb_PublicKey publicKey;
+        sb_PrivateKey privateKey;
+
+        std::string nm;
+        ss<<n.length();
+        ss<<" ";
+        ss<<input.length();
+        m_pParent->getLog()->debug(ss.str().data());
+        ss.clear();
+
+        stepResult=hu_RSAKeySet(params,
+                         e.length(), reinterpret_cast<const unsigned char *>(e.data()),
+//                         0, NULL,
+                         n.length(), reinterpret_cast<const unsigned char *>(n.data()),
+                         0, NULL,
+                         0, NULL,
+        //                 pLen, reinterpret_cast<const unsigned char *>(p.data()),
+                         0, NULL,
+        //                 qLen, reinterpret_cast<const unsigned char *>(q.data()),
+                        0, NULL,
+        //                size_t dModPLen, const unsigned char *dModPm1,
+                        0, NULL,
+        //                size_t dModQLen, const unsigned char *dModQm1,
+                        0, NULL,
+        //                size_t qInvLen, const unsigned char *qInvModP,
+                        NULL, &publicKey,
+                        this->context());
+
+        std::string sss;
+
+        if (stepResult!=SB_SUCCESS){
+            ss << stepResult;
+            sss = ss.str();
+            m_pParent->getLog()->error(("returning error!"+sss).data());
+            return "ERROR "+sss;
+        }else{
+            m_pParent->getLog()->debug("keys created");
+        }
+
+        size_t outputSize=nLen/8;
+        size_t inputSize=input.length();
+        unsigned char output[outputSize];
+        stepResult=hu_RSAPublicEncrypt(params, publicKey, reinterpret_cast<const unsigned char *>(input.data()), output, this->context());
+        if (stepResult!=SB_SUCCESS){
+            ss << stepResult;
+            sss = ss.str();
+            m_pParent->getLog()->error(("returning error!"));
+            return "ERROR "+sss;
+        }else{
+            m_pParent->getLog()->debug(("encrypted "+sss).data());
+        }
+
+        QByteArray result = QByteArray(reinterpret_cast<char *>(output), outputSize);
+        m_pParent->getLog()->debug(result.toBase64().data());
+        return result.toBase64().data();
+    }
+
+
+    std::string NativeCryptoNDK::decodeRsa(size_t eLen, size_t nLen, size_t dLen, size_t pLen, size_t qLen,
+            std::string e, std::string n, std::string d, std::string p, std::string q,
+            std::string input){
+        sb_Params params;
+        int stepResult=hu_RSAParamsCreate(nLen, NULL, NULL, &params,  this->context());
+        stringstream ss;
+
+        sb_PublicKey publicKey;
+        sb_PrivateKey privateKey;
+
+        stepResult=hu_RSAKeySet(params,
+                 e.length(), reinterpret_cast<const unsigned char *>(e.data()),
+                 n.length(), reinterpret_cast<const unsigned char *>(n.data()),
+                 d.length(), reinterpret_cast<const unsigned char *>(d.data()),
+//                 0, NULL,
+                 pLen, reinterpret_cast<const unsigned char *>(p.data()),
+//                 0, NULL,
+                 qLen, reinterpret_cast<const unsigned char *>(q.data()),
+                0, NULL,
+//                size_t dModPLen, const unsigned char *dModPm1,
+                0, NULL,
+//                size_t dModQLen, const unsigned char *dModQm1,
+                0, NULL,
+//                size_t qInvLen, const unsigned char *qInvModP,
+                &privateKey, &publicKey,
+                this->context());
+//        ss << stepResult;
+//        std::string sss = ss.str();
+//        ss.clear();
+//        m_pParent->getLog()->debug(("keys created "+sss).data());
+
+        size_t outputSize=nLen/8;
+        unsigned char output[outputSize];
+
+//        stepResult=hu_RSAPublicDecrypt(params, publicKey, reinterpret_cast<const unsigned char *>(input.data()), output, this->context());
+        stepResult=hu_RSAPKCS1v15Dec(params, privateKey, input.length(), reinterpret_cast<const unsigned char *>(input.data()), &outputSize, output, this->context());
+
+        QByteArray result = QByteArray(reinterpret_cast<char *>(output), outputSize);
+        m_pParent->getLog()->debug(result.toBase64().data());
+        return result.toBase64().data();
+    }
+
     std::string NativeCryptoNDK::produceKeyByPassword(std::string passphraseB64, size_t numBytes,
             int algorithm, std::string type, size_t c, std::string saltB64)
     {
@@ -434,104 +530,21 @@ namespace webworks
         size_t expbias = 6;
         return (16 + (c & 15)) << ((c >> 4) + expbias);
     }
-//
-//    AESParams::AESParams(NativeCryptoNDK & own, int mode, size_t blockLength, bool withRandom) :
-//            owner(own), params(NULL)
-//    {
-//        int rc = hu_AESParamsCreate(mode, blockLength, withRandom ? owner.randomContext() : NULL,
-//                NULL, &params, owner.context());
-//        if (rc != SB_SUCCESS) {
-//            stringstream ss;
-//            ss << rc;
-//            std::string sss = ss.str();
-//        owner.m_pParent->getLog()->debug(("Could not create AES params "+sss).data());
-////            throw errorMessage("Could not create AES params", rc);
-//    }
-//}
-//
-//AESParams::~AESParams()
-//{
-//    if (params != NULL) {
-//        hu_AESParamsDestroy(&params, owner.context());
-//        params = NULL;
-//    }
-//}
-//AESKey::AESKey(AESParams & own, std::string & keyStr) :
-//        params(own), key(NULL)
-//{
-//    int rc = hu_AESKeySet(params.params, keyStr.length() * 8,
-//            reinterpret_cast<const unsigned char *>(keyStr.data()), &key, params.owner.context());
-//    if (rc != SB_SUCCESS) {
-////            std::stringstream s;
-////            s << "Could not set AES Key" << rc;
-////            s << " dtLen: " << dt.dataLen;
-////            throw s.str();
-//        stringstream ss;
-//        ss << rc;
-//        std::string sss = ss.str();
-//        own.owner.m_pParent->getLog()->debug(("Could not set AES Key " + sss).data());
-//    }
-//}
-//
-//AESKey::AESKey(AESParams & own, size_t size) :
-//        params(own), key(NULL)
-//{
-//    if (key != NULL) {
-//        throw std::string("Key already exists");
-//    }
-//    int rc = hu_AESKeyGen(params.params, size, &key, params.owner.context());
-//    if (rc != SB_SUCCESS) {
-////            throw errorMessage("Could not generate AES key", rc);
-//        stringstream ss;
-//        ss << rc;
-//        std::string sss = ss.str();
-//        own.owner.m_pParent->getLog()->debug(("Could not generate AES key " + sss).data());
-//    }
-//}
-//
-//AESKey::~AESKey()
-//{
-//    if (key != NULL) {
-//        hu_AESKeyDestroy(params.params, &key, params.owner.context());
-//    }
-//}
-//
-//AESContext::AESContext(AESParams & p, AESKey & key, int mode) :
-//        params(p), context(NULL)
-//{
-//
-//    unsigned char iv[0];
-//    int rc = hu_AESBeginV2(params.params, key.key, mode, 0, iv, &context, params.owner.context());
-//    if (rc != SB_SUCCESS) {
-////            throw errorMessage("Could not create AES context", rc);
-//        stringstream ss;
-//        ss << rc;
-//        std::string sss = ss.str();
-//        p.owner.m_pParent->getLog()->debug(("Could not create AES context " + sss).data());
-//    }
-//}
-//
-//AESContext::~AESContext()
-//{
-//    if (context != NULL) {
-//        hu_AESEnd(&context, params.owner.context());
-//        context = NULL;
-//    }
-//}
-//
-//void AESContext::crypt(std::string & in, unsigned char * out, bool isEncrypt)
-//{
-//    int rc(0);
-//    if (isEncrypt) {
-//        rc = hu_AESEncrypt(context, in.length(), reinterpret_cast<const unsigned char *>(in.data()),
-//                out, params.owner.context());
-//    } else {
-//        rc = hu_AESDecrypt(context, in.length(), reinterpret_cast<const unsigned char *>(in.data()),
-//                out, params.owner.context());
-//    }
-//    if (rc != SB_SUCCESS) {
-//            throw std::string("Could not encrypt data", rc);
-//    }
-//}
+
+    unsigned char NativeCryptoNDK::b64Nibble(unsigned char c) {
+        if (c >= 'A' && c <= 'Z') {
+            return c - 'A';
+        } else if (c >= 'a' && c <= 'z') {
+            return c - 'a' + 26;
+        } else if (c >= '0' && c <= '9') {
+            return c - '0' + 52;
+        } else if (c == '+') {
+            return 62;
+        } else if (c == '/') {
+            return 63;
+        }
+        return 0;
+    }
+
 
 } /* namespace webworks */

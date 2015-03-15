@@ -27,6 +27,24 @@ module.exports = {
 	// These methods call into JNEXT.GSECrypto which handles the
 	// communication through the JNEXT plugin to gseCrypto_js.cpp
 
+    rsaDecrypt: function (success, fail, args, env) {
+        var result = new PluginResult(args, env);
+        var input = JSON.parse(decodeURIComponent(args.input));
+        result.ok(nativeCrypto.getInstance().rsaDecrypt(result.callbackId,
+            input.eLen, input.nLen, input.dLen, input.pLen, input.qLen,
+            input.e,    input.n,    input.d,    input.p,    input.q,
+            input.message
+        ), false);
+    },
+    rsaEncrypt: function (success, fail, args, env) {
+        var result = new PluginResult(args, env);
+        var input = JSON.parse(decodeURIComponent(args.input));
+        result.ok(nativeCrypto.getInstance().rsaEncrypt(result.callbackId,
+            input.nLen,
+            input.e,    input.n,
+            input.message
+        ), false);
+    },
     aes128ecb: function (success, fail, args, env) {
         var result = new PluginResult(args, env);
         var input = JSON.parse(decodeURIComponent(args.input));
@@ -122,6 +140,12 @@ JNEXT.NativeCrypto = function () {
     };
     self.aes128ecb = function (callbackId, key, block) {
         return JNEXT.invoke(self.m_id, "aes128ecb " + callbackId + " " + key +" "+ block);
+    };
+    self.rsaEncrypt = function (callbackId, eLen, nLen, e, n, message) {
+        return JNEXT.invoke(self.m_id, "rsaEncrypt " + callbackId + " " + nLen+ " " + e+ " " + n+ " " + message);
+    };
+    self.rsaDecrypt = function (callbackId, eLen, nLen, dLen, pLen, qLen, e, n, d, p, q, message) {
+        return JNEXT.invoke(self.m_id, "rsaDecrypt " + callbackId + " " + eLen+ " " + nLen+ " " + dLen+ " " + pLen+ " " + qLen+ " " + e+ " " + n+ " " + d+ " " + p+ " " + q+ " " + message);
     };
     self.hashMd5 = function (callbackId, input) {
         return JNEXT.invoke(self.m_id, "hashMd5 " + callbackId + " " + input );

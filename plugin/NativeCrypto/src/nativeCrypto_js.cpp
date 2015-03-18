@@ -149,9 +149,14 @@ string NativeCryptoJS::InvokeMethod(const string& command)
         std::string nB64=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
         std::string mB64=arg.substr(0, arg.find_first_of(" "));
+//        result = m_pNativeCryptoController->encodeRsa(
+//                size_t(atoi(nLen.c_str())),
+//                m_pNativeCryptoController->fromBase64(eB64), m_pNativeCryptoController->fromBase64(nB64),
+//                m_pNativeCryptoController->fromBase64(mB64)
+//                );
         result = m_pNativeCryptoController->encodeRsa(
                 size_t(atoi(nLen.c_str())),
-                m_pNativeCryptoController->fromBase64(eB64), m_pNativeCryptoController->fromBase64(nB64),
+                eB64, nB64,
                 m_pNativeCryptoController->fromBase64(mB64)
                 );
         m_pLogger->debug(result.data());

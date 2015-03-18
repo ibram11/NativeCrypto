@@ -37,6 +37,8 @@
 #include <hurandom.h>
 #include <openssl/ripemd.h>
 
+#include "openssl/rsa.h"
+
 namespace webworks
 {
 
@@ -50,6 +52,8 @@ namespace webworks
             error = hu_RegisterSbg56(sbCtx);
             error = hu_InitSbg56(sbCtx);
             error = hu_RegisterSystemSeed(sbCtx);
+            error = hu_RegisterSbg56RSA(sbCtx);
+            error = hu_RegisterSbg56RSABlinding(sbCtx);
             error = hu_RngDrbgCreate(HU_DRBG_CIPHER, 256, 0, 0, NULL, NULL, &rngCtx, sbCtx);
         } catch (std::string & message) {
             std::stringstream out;
@@ -99,6 +103,16 @@ namespace webworks
         QByteArray text = QByteArray(reinterpret_cast<const char *>(digest.data()),
                 digest.length());
         return text.toBase64().data();
+    }
+
+    std::string NativeCryptoNDK::toHex(unsigned char * data, size_t dataLen) {
+        const char * hexChars = "0123456789abcdef";
+        std::string toReturn;
+        for (size_t i = 0; i < dataLen; ++i) {
+            toReturn += hexChars[data[i] >> 4];
+            toReturn += hexChars[data[i] & 15];
+        }
+        return toReturn;
     }
 
     std::string NativeCryptoNDK::fromBase64(std::string text)
@@ -343,22 +357,65 @@ namespace webworks
     }
 
     std::string NativeCryptoNDK::encodeRsa(size_t nLen,
+                                std::string e, std::string n,
+                                std::string input){
+        RSA* rsa = RSA_new();
+        BIGNUM *modulus = BN_new();
+        BIGNUM *exponent = BN_new();
+        m_pParent->getLog()->debug("constructor");
+
+//        int len = BN_hex2bn(&modulus, n.data());
+        int len = BN_hex2bn(&modulus, n.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong modulus");
+        }
+        len= BN_hex2bn(&exponent, e.data());
+        if (len==0){
+                    m_pParent->getLog()->error("wrong exp");
+        }
+        m_pParent->getLog()->debug("from hex");
+
+        rsa->n = BN_new();
+        BN_copy(rsa->n, modulus);
+        m_pParent->getLog()->debug("set n");
+
+        rsa->e = BN_new();
+        BN_copy(rsa->e, exponent);
+        m_pParent->getLog()->debug("set e");
+
+        size_t outputSize=nLen/8;
+        int maxSize = RSA_size(rsa);
+        stringstream sstream;
+        sstream << maxSize;
+        std::string tmp=sstream.str();
+        m_pParent->getLog()->debug(tmp.data());
+
+        unsigned char output[outputSize];
+        unsigned char * encrypted =(unsigned char*) malloc(maxSize);
+
+        const char* inn = input.data();
+
+        int operationResult=RSA_public_encrypt(n.length(), (unsigned char*)n.data(), encrypted, rsa, RSA_NO_PADDING);
+        if(operationResult ==-1){
+                RSA_free(rsa);
+                m_pParent->getLog()->debug("encrypt error");
+            }else{
+        m_pParent->getLog()->debug("encrypted");
+            }
+        return toHex(encrypted, outputSize);
+    }
+/*
+    std::string NativeCryptoNDK::encodeRsa(size_t nLen,
                             std::string e, std::string n,
                             std::string input){
         sb_Params params;
         stringstream ss;
         m_pParent->getLog()->debug("start");
-        int stepResult=hu_RSAParamsCreate(nLen, this->randomContext(), NULL, &params,  this->context());
+        int stepResult=hu_RSAParamsCreate(nLen, NULL, NULL, &params,  this->context());
         m_pParent->getLog()->debug("params created");
         sb_PublicKey publicKey;
         sb_PrivateKey privateKey;
 
-        std::string nm;
-        ss<<n.length();
-        ss<<" ";
-        ss<<input.length();
-        m_pParent->getLog()->debug(ss.str().data());
-        ss.clear();
 
         stepResult=hu_RSAKeySet(params,
                          e.length(), reinterpret_cast<const unsigned char *>(e.data()),
@@ -387,26 +444,48 @@ namespace webworks
             return "ERROR keys"+sss;
         }else{
             m_pParent->getLog()->debug("keys created");
+//            size_t eLenCreated;
+//            size_t nLenCreated;
+//            unsigned char nCreated[nLen];
+//            unsigned char eCreated[nLen];
+//            size_t dLenCreated;
+//            size_t pLenCreated;
+//            unsigned char *dCreated;
+//            unsigned char *pCreated;
+//            size_t qLenCreated;
+//            size_t dModLenCreated;
+//            unsigned char *qCreated;
+//            unsigned char *dModCreated;
+//            size_t qMod2LenCreated;
+//            size_t ivLenCreated;
+//            unsigned char *ivCreated;
+//            unsigned char *dMod2Created;
+//            stepResult=hu_RSAKeyGet(params, NULL, publicKey, &eLenCreated, eCreated, &nLenCreated, nCreated,
+//                    &dLenCreated, dCreated, &pLenCreated, pCreated,
+//                    &qLenCreated, qCreated, &dModLenCreated, dModCreated,
+//                    &qMod2LenCreated, dMod2Created, &ivLenCreated, ivCreated,
+//                    this->context());
+//            return toHex(nCreated, nLenCreated);
         }
 
         size_t outputSize=nLen/8;
-        size_t inputSize=input.length();
         unsigned char output[outputSize];
-        stepResult=hu_RSAPublicEncrypt(params, publicKey, reinterpret_cast<const unsigned char *>(input.data()), output, this->context());
+        stepResult=hu_RSAPublicEncrypt(params, publicKey, (unsigned char *)input.data(), output, this->context());
         if (stepResult!=SB_SUCCESS){
             ss << stepResult;
             sss = ss.str();
             m_pParent->getLog()->error(("encryption error!"));
             return "ERROR encryption"+sss;
         }else{
-            m_pParent->getLog()->debug(("encrypted "+sss).data());
+            m_pParent->getLog()->debug("encrypted ");
         }
 
-        QByteArray result = QByteArray(reinterpret_cast<char *>(output), outputSize);
-        m_pParent->getLog()->debug(result.toBase64().data());
-        return result.toBase64().data();
+        return toHex(output, outputSize);
+//        QByteArray result = QByteArray(reinterpret_cast<char *>(output), outputSize);
+//        m_pParent->getLog()->debug(result.toBase64().data());
+//        return result.toBase64().data();
     }
-
+*/
 
     std::string NativeCryptoNDK::decodeRsa(size_t eLen, size_t nLen, size_t dLen, size_t pLen, size_t qLen,
             std::string e, std::string n, std::string d, std::string p, std::string q,

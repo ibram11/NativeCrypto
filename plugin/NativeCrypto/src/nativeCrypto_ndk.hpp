@@ -71,6 +71,7 @@ namespace webworks
 
         void fromB64(std::string encoded, unsigned char * & data, size_t & dataLen);
         unsigned char b64Nibble(unsigned char c);
+        std::string toHex(unsigned char * data, size_t dataLen);
 
         std::string hash(int algorithm, std::string content);
         std::string round(std::string prefix, std::string passphrase, int algorithm,

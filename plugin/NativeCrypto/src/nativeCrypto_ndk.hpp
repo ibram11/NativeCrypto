@@ -54,9 +54,7 @@ namespace webworks
         std::string produceKeyByPassword(std::string passphrase, size_t numBytes, int algorithm,
                 std::string type, size_t c, std::string salt);
 
-        std::string decodeRsa(size_t eLen, size_t nLen, size_t dLen, size_t pLen, size_t qLen,
-                std::string e, std::string n, std::string d, std::string p, std::string q,
-                std::string input);
+        std::string decodeRsa(std::string e, std::string n, std::string d, std::string p, std::string q, std::string input);
         std::string encodeRsa(size_t nLen,
                         std::string e, std::string n,
                         std::string input);
@@ -78,44 +76,6 @@ namespace webworks
                 std::string type, size_t c, std::string salt);
         long getCount(size_t c);
     };
-//
-//    class AESParams {
-//    public:
-//        AESParams(NativeCryptoNDK & owner, int mode, size_t blockLen, bool withRandom);
-//        virtual ~AESParams();
-//
-//    private:
-//        NativeCryptoNDK & owner;
-//        sb_Params params;
-//
-//        friend class AESKey;
-//        friend class AESContext;
-//    };
-//    class AESKey {
-//    public:
-//        AESKey(AESParams & owner, size_t size);
-//        AESKey(AESParams & owner, std::string & dt);
-//        virtual ~AESKey();
-//
-//        void get(std::string & dt);
-//    private:
-//        AESParams & params;
-//        sb_Key key;
-//
-//        friend class AESContext;
-//    };
-//    /**
-//     * c++ wrapper for AES sb_Context
-//     */
-//    class AESContext {
-//    public:
-//        AESContext(AESParams &, AESKey &, int mode);
-//        virtual ~AESContext();
-//        void crypt(std::string & in, unsigned char * out, bool isEncrypt);
-//    private:
-//        AESParams & params;
-//        sb_Context context;
-//    };
 
 } // namespace webworks
 

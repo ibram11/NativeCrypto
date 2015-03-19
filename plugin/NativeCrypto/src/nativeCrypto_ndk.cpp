@@ -282,7 +282,6 @@ namespace webworks
         std::string result(reinterpret_cast<char *>(digest), digestLen);
         return result;
     }
-
     std::string NativeCryptoNDK::getSha512(std::string toHash)
     {
         size_t inputLength = toHash.length();
@@ -362,48 +361,96 @@ namespace webworks
         RSA* rsa = RSA_new();
         BIGNUM *modulus = BN_new();
         BIGNUM *exponent = BN_new();
-        m_pParent->getLog()->debug("constructor");
-
-//        int len = BN_hex2bn(&modulus, n.data());
         int len = BN_hex2bn(&modulus, n.data());
         if (len==0){
             m_pParent->getLog()->error("wrong modulus");
+            return "ERROR wrong modulus";
         }
         len= BN_hex2bn(&exponent, e.data());
         if (len==0){
                     m_pParent->getLog()->error("wrong exp");
+                    return "ERROR wrong exp";
         }
-        m_pParent->getLog()->debug("from hex");
 
         rsa->n = BN_new();
         BN_copy(rsa->n, modulus);
-        m_pParent->getLog()->debug("set n");
 
         rsa->e = BN_new();
         BN_copy(rsa->e, exponent);
-        m_pParent->getLog()->debug("set e");
 
-        size_t outputSize=nLen/8;
         int maxSize = RSA_size(rsa);
         stringstream sstream;
         sstream << maxSize;
         std::string tmp=sstream.str();
-        m_pParent->getLog()->debug(tmp.data());
 
-        unsigned char output[outputSize];
         unsigned char * encrypted =(unsigned char*) malloc(maxSize);
-
         const char* inn = input.data();
-
-        int operationResult=RSA_public_encrypt(n.length(), (unsigned char*)n.data(), encrypted, rsa, RSA_NO_PADDING);
+        int operationResult=RSA_public_encrypt(input.length(), (unsigned char*)input.data(), encrypted, rsa, RSA_NO_PADDING);
         if(operationResult ==-1){
                 RSA_free(rsa);
                 m_pParent->getLog()->debug("encrypt error");
-            }else{
-        m_pParent->getLog()->debug("encrypted");
             }
-        return toHex(encrypted, outputSize);
+        return toHex(encrypted, maxSize);
     }
+
+    std::string NativeCryptoNDK::decodeRsa(std::string e, std::string n, std::string d, std::string p, std::string q, std::string input){
+        RSA* rsa = RSA_new();
+        BIGNUM *modulus = BN_new();
+        BIGNUM *exponent = BN_new();
+        BIGNUM *pNb = BN_new();
+        BIGNUM *qNb = BN_new();
+        BIGNUM *dNb = BN_new();
+        int len = BN_dec2bn(&modulus, n.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong modulus");
+            return "ERROR wrong modulus";
+        }
+        rsa->n = BN_new();
+        BN_copy(rsa->n, modulus);
+
+        len= BN_dec2bn(&exponent, e.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong exp");
+            return "ERROR wrong exp";
+        }
+        rsa->e = BN_new();
+        BN_copy(rsa->e, exponent);
+
+        len= BN_dec2bn(&pNb, p.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong p");
+            return "ERROR wrong p";
+        }
+        rsa->p = BN_new();
+        BN_copy(rsa->p, pNb);
+
+        len= BN_dec2bn(&qNb, q.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong q");
+            m_pParent->getLog()->error(q.data());
+            return "ERROR wrong q";
+        }
+        rsa->q = BN_new();
+        BN_copy(rsa->q, qNb);
+
+        len= BN_dec2bn(&dNb, d.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong d");
+            return "ERROR wrong d";
+        }
+        rsa->d = BN_new();
+        BN_copy(rsa->d, dNb);
+
+        int maxSize = RSA_size(rsa);
+        unsigned char * decrypted =(unsigned char*) malloc(maxSize);
+        int operationResult=RSA_private_decrypt(input.length(), (unsigned char*)input.data(), decrypted, rsa, RSA_NO_PADDING);
+        if(operationResult ==-1){
+            RSA_free(rsa);
+            m_pParent->getLog()->debug("encrypt error");
+        }
+        return toHex(decrypted, operationResult);
+    }
+
 /*
     std::string NativeCryptoNDK::encodeRsa(size_t nLen,
                             std::string e, std::string n,
@@ -485,7 +532,6 @@ namespace webworks
 //        m_pParent->getLog()->debug(result.toBase64().data());
 //        return result.toBase64().data();
     }
-*/
 
     std::string NativeCryptoNDK::decodeRsa(size_t eLen, size_t nLen, size_t dLen, size_t pLen, size_t qLen,
             std::string e, std::string n, std::string d, std::string p, std::string q,
@@ -528,7 +574,7 @@ namespace webworks
         m_pParent->getLog()->debug(result.toBase64().data());
         return result.toBase64().data();
     }
-
+*/
     std::string NativeCryptoNDK::produceKeyByPassword(std::string passphraseB64, size_t numBytes,
             int algorithm, std::string type, size_t c, std::string saltB64)
     {

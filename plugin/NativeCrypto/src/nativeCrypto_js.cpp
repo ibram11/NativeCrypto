@@ -98,7 +98,7 @@ string NativeCryptoJS::InvokeMethod(const string& command)
 {
     clock_t begin = clock();
     // format must be: "command callbackId params"
-    m_pLogger->debug(command.c_str());
+//    m_pLogger->debug(command.c_str());
     size_t commandIndex = command.find_first_of(" ");
     std::string strCommand = command.substr(0, commandIndex);
     size_t callbackIndex = command.find_first_of(" ", commandIndex + 1);
@@ -108,7 +108,7 @@ string NativeCryptoJS::InvokeMethod(const string& command)
 
     std::string result = "";
 
-    m_pLogger->debug(strCommand.c_str());
+//    m_pLogger->debug(strCommand.c_str());
 
     if (strCommand == "ping") {
         return m_pNativeCryptoController->ping();
@@ -159,20 +159,19 @@ string NativeCryptoJS::InvokeMethod(const string& command)
                 eB64, nB64,
                 m_pNativeCryptoController->fromBase64(mB64)
                 );
-        m_pLogger->debug(result.data());
         //result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "rsaDecrypt") {
-        std::string eLen=arg.substr(0, arg.find_first_of(" "));
-        arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string nLen=arg.substr(0, arg.find_first_of(" "));
-        arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string dLen=arg.substr(0, arg.find_first_of(" "));
-        arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string pLen=arg.substr(0, arg.find_first_of(" "));
-        arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string qLen=arg.substr(0, arg.find_first_of(" "));
-        arg=arg.substr(arg.find_first_of(" ")+1);
+//        std::string eLen=arg.substr(0, arg.find_first_of(" "));
+//        arg=arg.substr(arg.find_first_of(" ")+1);
+//        std::string nLen=arg.substr(0, arg.find_first_of(" "));
+//        arg=arg.substr(arg.find_first_of(" ")+1);
+//        std::string dLen=arg.substr(0, arg.find_first_of(" "));
+//        arg=arg.substr(arg.find_first_of(" ")+1);
+//        std::string pLen=arg.substr(0, arg.find_first_of(" "));
+//        arg=arg.substr(arg.find_first_of(" ")+1);
+//        std::string qLen=arg.substr(0, arg.find_first_of(" "));
+//        arg=arg.substr(arg.find_first_of(" ")+1);
 
         std::string eB64=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
@@ -186,14 +185,21 @@ string NativeCryptoJS::InvokeMethod(const string& command)
         arg=arg.substr(arg.find_first_of(" ")+1);
         std::string mB64=arg.substr(0, arg.find_first_of(" "));
         result = m_pNativeCryptoController->decodeRsa(
-                size_t(atoi(eLen.c_str())), size_t(atoi(nLen.c_str())), size_t(atoi(dLen.c_str())),
-                size_t(atoi(pLen.c_str())), size_t(atoi(qLen.c_str())),
-                m_pNativeCryptoController->fromBase64(eB64), m_pNativeCryptoController->fromBase64(nB64),
-                m_pNativeCryptoController->fromBase64(dB64), m_pNativeCryptoController->fromBase64(pB64),
-                m_pNativeCryptoController->fromBase64(qB64),
-                m_pNativeCryptoController->fromBase64(mB64)
-                );
-        result = m_pNativeCryptoController->toBase64(result);
+                        eB64, nB64,
+                        dB64, pB64,
+                        qB64,
+                        m_pNativeCryptoController->fromBase64(mB64)
+                        );
+//        result = m_pNativeCryptoController->decodeRsa(
+//                size_t(atoi(eLen.c_str())), size_t(atoi(nLen.c_str())), size_t(atoi(dLen.c_str())),
+//                size_t(atoi(pLen.c_str())), size_t(atoi(qLen.c_str())),
+//                m_pNativeCryptoController->fromBase64(eB64), m_pNativeCryptoController->fromBase64(nB64),
+//                m_pNativeCryptoController->fromBase64(dB64), m_pNativeCryptoController->fromBase64(pB64),
+//                m_pNativeCryptoController->fromBase64(qB64),
+//                m_pNativeCryptoController->fromBase64(mB64)
+//                );
+//        result = m_pNativeCryptoController->toBase64(result);
+
 
     }
     if (strCommand == "aes128ecb") {
@@ -232,11 +238,11 @@ string NativeCryptoJS::InvokeMethod(const string& command)
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (result.length() > 0) {
-        clock_t end = clock();
-        double time = (double(end - begin) / CLOCKS_PER_SEC);
-        char buffer[256]; // make sure this is big enough!!!
-        snprintf(buffer, sizeof(buffer), "(%f)", time);
-        this->getLog()->debug(buffer);
+//        clock_t end = clock();
+//        double time = (double(end - begin) / CLOCKS_PER_SEC);
+//        char buffer[256]; // make sure this is big enough!!!
+//        snprintf(buffer, sizeof(buffer), "(%f)", time);
+//        this->getLog()->debug(buffer);
         return result;
     }
 

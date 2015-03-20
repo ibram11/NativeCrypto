@@ -58,12 +58,17 @@
     </annotationProcessing>
   </component>
   <component name="CopyrightManager" default="" />
-  <component name="CppTools.Loader" reportImplicitCastToBool="false" reportNameReferencedOnce="false" warnedAboutFileOutOfSourceRoot="true" version="3" activeConfiguration="Release" additionalPreprocessorDefs="" compilerSelect="GCC" />
+  <component name="CppTools.Loader" reportImplicitCastToBool="false" reportNameReferencedOnce="false" warnedAboutFileOutOfSourceRoot="true" version="3" activeConfiguration="Release" sdkErrorReported="true" additionalPreprocessorDefs="" compilerSelect="GCC" />
   <component name="DaemonCodeAnalyzer">
     <disable_hints />
   </component>
   <component name="DependencyValidationManager">
     <option name="SKIP_IMPORT_STATEMENTS" value="false" />
+  </component>
+  <component name="EclipseCodeFormatter">
+    <option name="defaultSettings" value="true" />
+    <option name="id" value="1421412681109" />
+    <option name="name" value="default" />
   </component>
   <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false" />
   <component name="GradleLocalSettings">

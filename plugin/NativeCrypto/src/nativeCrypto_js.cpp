@@ -144,63 +144,28 @@ string NativeCryptoJS::InvokeMethod(const string& command)
     if (strCommand == "rsaEncrypt") {
         std::string nLen=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string eB64=arg.substr(0, arg.find_first_of(" "));
+        std::string e=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string nB64=arg.substr(0, arg.find_first_of(" "));
+        std::string n=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
         std::string mB64=arg.substr(0, arg.find_first_of(" "));
-//        result = m_pNativeCryptoController->encodeRsa(
-//                size_t(atoi(nLen.c_str())),
-//                m_pNativeCryptoController->fromBase64(eB64), m_pNativeCryptoController->fromBase64(nB64),
-//                m_pNativeCryptoController->fromBase64(mB64)
-//                );
-        result = m_pNativeCryptoController->encodeRsa(
-                size_t(atoi(nLen.c_str())),
-                eB64, nB64,
-                m_pNativeCryptoController->fromBase64(mB64)
-                );
-        //result = m_pNativeCryptoController->toBase64(result);
+        result = m_pNativeCryptoController->encodeRsa( e, n, m_pNativeCryptoController->fromBase64(mB64));
     }
     if (strCommand == "rsaDecrypt") {
-//        std::string eLen=arg.substr(0, arg.find_first_of(" "));
-//        arg=arg.substr(arg.find_first_of(" ")+1);
-//        std::string nLen=arg.substr(0, arg.find_first_of(" "));
-//        arg=arg.substr(arg.find_first_of(" ")+1);
-//        std::string dLen=arg.substr(0, arg.find_first_of(" "));
-//        arg=arg.substr(arg.find_first_of(" ")+1);
-//        std::string pLen=arg.substr(0, arg.find_first_of(" "));
-//        arg=arg.substr(arg.find_first_of(" ")+1);
-//        std::string qLen=arg.substr(0, arg.find_first_of(" "));
-//        arg=arg.substr(arg.find_first_of(" ")+1);
-
-        std::string eB64=arg.substr(0, arg.find_first_of(" "));
+        std::string e=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string nB64=arg.substr(0, arg.find_first_of(" "));
+        std::string n=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string dB64=arg.substr(0, arg.find_first_of(" "));
+        std::string d=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string pB64=arg.substr(0, arg.find_first_of(" "));
+        std::string p=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string qB64=arg.substr(0, arg.find_first_of(" "));
+        std::string q=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string u=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
         std::string mB64=arg.substr(0, arg.find_first_of(" "));
-        result = m_pNativeCryptoController->decodeRsa(
-                        eB64, nB64,
-                        dB64, pB64,
-                        qB64,
-                        m_pNativeCryptoController->fromBase64(mB64)
-                        );
-//        result = m_pNativeCryptoController->decodeRsa(
-//                size_t(atoi(eLen.c_str())), size_t(atoi(nLen.c_str())), size_t(atoi(dLen.c_str())),
-//                size_t(atoi(pLen.c_str())), size_t(atoi(qLen.c_str())),
-//                m_pNativeCryptoController->fromBase64(eB64), m_pNativeCryptoController->fromBase64(nB64),
-//                m_pNativeCryptoController->fromBase64(dB64), m_pNativeCryptoController->fromBase64(pB64),
-//                m_pNativeCryptoController->fromBase64(qB64),
-//                m_pNativeCryptoController->fromBase64(mB64)
-//                );
-//        result = m_pNativeCryptoController->toBase64(result);
-
-
+        result = m_pNativeCryptoController->decodeRsa( e, n, d, p, q, u, m_pNativeCryptoController->fromBase64(mB64));
     }
     if (strCommand == "aes128ecb") {
         std::string keyB64=arg.substr(0, arg.find_first_of(" "));
@@ -237,12 +202,16 @@ string NativeCryptoJS::InvokeMethod(const string& command)
                 saltStr);
         result = m_pNativeCryptoController->toBase64(result);
     }
+    arg.clear();
     if (result.length() > 0) {
 //        clock_t end = clock();
 //        double time = (double(end - begin) / CLOCKS_PER_SEC);
 //        char buffer[256]; // make sure this is big enough!!!
 //        snprintf(buffer, sizeof(buffer), "(%f)", time);
 //        this->getLog()->debug(buffer);
+        command.clear();
+        strCommand.clear();
+        callbackId.clear();
         return result;
     }
 

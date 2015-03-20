@@ -31,18 +31,14 @@ module.exports = {
         var result = new PluginResult(args, env);
         var input = JSON.parse(decodeURIComponent(args.input));
         result.ok(nativeCrypto.getInstance().rsaDecrypt(result.callbackId,
-            input.e,    input.n,    input.d,    input.p,    input.q,
+            input.e, input.n, input.d, input.p, input.q, input.u,
             input.message
         ), false);
     },
     rsaEncrypt: function (success, fail, args, env) {
         var result = new PluginResult(args, env);
         var input = JSON.parse(decodeURIComponent(args.input));
-        result.ok(nativeCrypto.getInstance().rsaEncrypt(result.callbackId,
-            input.nLen,
-            input.e,    input.n,
-            input.message
-        ), false);
+        result.ok(nativeCrypto.getInstance().rsaEncrypt(result.callbackId, input.e, input.n, input.message), false);
     },
     aes128ecb: function (success, fail, args, env) {
         var result = new PluginResult(args, env);
@@ -141,10 +137,10 @@ JNEXT.NativeCrypto = function () {
         return JNEXT.invoke(self.m_id, "aes128ecb " + callbackId + " " + key +" "+ block);
     };
     self.rsaEncrypt = function (callbackId, nLen, e, n, message) {
-        return JNEXT.invoke(self.m_id, "rsaEncrypt " + callbackId + " " + nLen+ " " + e+ " " + n+ " " + message);
+        return JNEXT.invoke(self.m_id, "rsaEncrypt " + callbackId + " " + e + " " + n + " " + message);
     };
-    self.rsaDecrypt = function (callbackId, e, n, d, p, q, message) {
-        return JNEXT.invoke(self.m_id, "rsaDecrypt " + callbackId + " " + e + " " + n+ " " + d+ " " + p+ " " + q+ " " + message);
+    self.rsaDecrypt = function (callbackId, e, n, d, p, q, u, message) {
+        return JNEXT.invoke(self.m_id, "rsaDecrypt " + callbackId + " " + e + " " + n + " " + d + " " + p + " " + q + " " + u + " " + message);
     };
     self.hashMd5 = function (callbackId, input) {
         return JNEXT.invoke(self.m_id, "hashMd5 " + callbackId + " " + input );

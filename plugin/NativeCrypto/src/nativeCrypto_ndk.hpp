@@ -55,9 +55,7 @@ namespace webworks
                 std::string type, size_t c, std::string salt);
 
         std::string decodeRsa(std::string e, std::string n, std::string d, std::string p, std::string q, std::string input);
-        std::string encodeRsa(size_t nLen,
-                        std::string e, std::string n,
-                        std::string input);
+        std::string encodeRsa(std::string e, std::string n, std::string input);
         friend class AESParams;
         friend class AESKey;
         friend class AESContext;

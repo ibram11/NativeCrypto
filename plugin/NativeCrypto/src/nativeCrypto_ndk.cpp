@@ -64,6 +64,10 @@ namespace webworks
 
     NativeCryptoNDK::~NativeCryptoNDK()
     {
+        if (rngCtx != NULL) {
+                hu_RngDrbgDestroy(&rngCtx, sbCtx);
+                rngCtx = NULL;
+        }
         if (sbCtx != NULL) {
             hu_GlobalCtxDestroy(&sbCtx);
             sbCtx = NULL;
@@ -127,6 +131,7 @@ namespace webworks
         unsigned char* data;
         this->fromB64(text, data, dataLen);
         std::string result(reinterpret_cast<const char *>(data), dataLen);
+        delete[] data;
         return result;
     }
 
@@ -313,9 +318,9 @@ namespace webworks
         int mode = SB_AES_ECB;
         unsigned char resultBytes[blockStr.length()];
 
-        stringstream ss;
-        ss << blockStr.length();
-        std::string sss = ss.str();
+//        stringstream ss;
+//        ss << blockStr.length();
+//        std::string sss = ss.str();
 //        m_pParent->getLog()->debug(("getAes128ecb " + sss + " " + keyStr+ " "+ blockStr).data());
 
         if ((blockStr.length() % 16) != 0) {
@@ -340,8 +345,11 @@ namespace webworks
 //        context.crypt(blockStr, resultBytes, true);
 
         hu_AESEncrypt(context, blockStr.length(), reinterpret_cast<const unsigned char *>(blockStr.data()), resultBytes, this->context());
-
+        hu_AESEnd(&context, this->context());
+        hu_AESKeyDestroy(params, &key, this->context());
+        hu_AESParamsDestroy(&params, this->context());
         std::string result(reinterpret_cast<char *>(resultBytes), blockStr.length());
+        delete[]resultBytes;
 //        m_pParent->getLog()->debug(("getAes128ecb result: "+ result).data());
         return result;
     }
@@ -355,99 +363,136 @@ namespace webworks
         return result;
     }
 
-    std::string NativeCryptoNDK::encodeRsa(size_t nLen,
-                                std::string e, std::string n,
-                                std::string input){
+    std::string NativeCryptoNDK::encodeRsa(std::string e, std::string n, std::string input){
         RSA* rsa = RSA_new();
         BIGNUM *modulus = BN_new();
         BIGNUM *exponent = BN_new();
-        int len = BN_hex2bn(&modulus, n.data());
+
+        int len = BN_dec2bn(&modulus, n.data());
         if (len==0){
             m_pParent->getLog()->error("wrong modulus");
+            BN_free(&modulus);
             return "ERROR wrong modulus";
         }
-        len= BN_hex2bn(&exponent, e.data());
-        if (len==0){
-                    m_pParent->getLog()->error("wrong exp");
-                    return "ERROR wrong exp";
-        }
-
         rsa->n = BN_new();
         BN_copy(rsa->n, modulus);
+        BN_free(&modulus);
+        n.clear();
 
+        len= BN_dec2bn(&exponent, e.data());
+        if (len==0){
+           m_pParent->getLog()->error("wrong exp");
+           BN_free(&exponent);
+           return "ERROR wrong exp";
+        }
         rsa->e = BN_new();
         BN_copy(rsa->e, exponent);
+        BN_free(&exponent);
+        e.clear();
 
         int maxSize = RSA_size(rsa);
-        stringstream sstream;
-        sstream << maxSize;
-        std::string tmp=sstream.str();
-
-        unsigned char * encrypted =(unsigned char*) malloc(maxSize);
-        const char* inn = input.data();
-        int operationResult=RSA_public_encrypt(input.length(), (unsigned char*)input.data(), encrypted, rsa, RSA_NO_PADDING);
+        unsigned char * encrypted=new unsigned char[maxSize];
+        unsigned char * toEncrypt=(unsigned char*)input.data();
+        int operationResult=RSA_public_encrypt(input.length(), toEncrypt, encrypted, rsa, RSA_NO_PADDING);
+        input.clear();
+        delete[] toEncrypt;
         if(operationResult ==-1){
-                RSA_free(rsa);
                 m_pParent->getLog()->debug("encrypt error");
+                RSA_free(rsa);
+                return "ERROR encryption";
             }
+        RSA_free(rsa);
         return toHex(encrypted, maxSize);
     }
 
-    std::string NativeCryptoNDK::decodeRsa(std::string e, std::string n, std::string d, std::string p, std::string q, std::string input){
+    std::string NativeCryptoNDK::decodeRsa(std::string e, std::string n, std::string d, std::string p, std::string q, std::string u, std::string input){
         RSA* rsa = RSA_new();
         BIGNUM *modulus = BN_new();
         BIGNUM *exponent = BN_new();
         BIGNUM *pNb = BN_new();
         BIGNUM *qNb = BN_new();
         BIGNUM *dNb = BN_new();
+        BIGNUM *uNb = BN_new();
         int len = BN_dec2bn(&modulus, n.data());
         if (len==0){
             m_pParent->getLog()->error("wrong modulus");
+            BN_free(&modulus);
             return "ERROR wrong modulus";
         }
         rsa->n = BN_new();
         BN_copy(rsa->n, modulus);
+        BN_free(&modulus);
+        n.clear();
 
         len= BN_dec2bn(&exponent, e.data());
         if (len==0){
             m_pParent->getLog()->error("wrong exp");
+            BN_free(&exponent);
             return "ERROR wrong exp";
         }
         rsa->e = BN_new();
         BN_copy(rsa->e, exponent);
+        BN_free(&exponent);
+        e.clear();
 
         len= BN_dec2bn(&pNb, p.data());
         if (len==0){
             m_pParent->getLog()->error("wrong p");
+            BN_free(&pNb);
             return "ERROR wrong p";
         }
         rsa->p = BN_new();
         BN_copy(rsa->p, pNb);
+        BN_free(&pNb);
+        p.clear();
 
         len= BN_dec2bn(&qNb, q.data());
         if (len==0){
             m_pParent->getLog()->error("wrong q");
-            m_pParent->getLog()->error(q.data());
+            BN_free(&qNb);
             return "ERROR wrong q";
         }
         rsa->q = BN_new();
         BN_copy(rsa->q, qNb);
+        BN_free(&qNb);
+        q.clear();
 
         len= BN_dec2bn(&dNb, d.data());
         if (len==0){
             m_pParent->getLog()->error("wrong d");
+            BN_free(&dNb);
             return "ERROR wrong d";
         }
         rsa->d = BN_new();
         BN_copy(rsa->d, dNb);
+        BN_free(&dNb);
+        d.clear();
+
+        len= BN_dec2bn(&uNb, u.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong u");
+            BN_free(&uNb);
+            return "ERROR wrong u";
+        }
+        rsa->iqmp = BN_new();
+        BN_copy(rsa->iqmp, dNb);
+        BN_free(&uNb);
+        u.clear();
 
         int maxSize = RSA_size(rsa);
-        unsigned char * decrypted =(unsigned char*) malloc(maxSize);
-        int operationResult=RSA_private_decrypt(input.length(), (unsigned char*)input.data(), decrypted, rsa, RSA_NO_PADDING);
+        unsigned char * decrypted =new unsigned char[maxSize];
+        unsigned char * toDecrypt =(unsigned char*)input.data();
+        RSA_blinding_on(rsa,NULL);
+        int operationResult=RSA_private_decrypt(input.length(), toDecrypt, decrypted, rsa, RSA_NO_PADDING);
+        RSA_blinding_off(rsa);
+        input.clear();
+        delete[] toDecrypt;
         if(operationResult ==-1){
-            RSA_free(rsa);
             m_pParent->getLog()->debug("encrypt error");
+            RSA_free(rsa);
+            return "ERROR encryption";
         }
+        RSA_free(rsa);
         return toHex(decrypted, operationResult);
     }
 
@@ -579,22 +624,21 @@ namespace webworks
             int algorithm, std::string type, size_t c, std::string saltB64)
     {
         std::string passphrase = fromBase64(passphraseB64);
+        passphraseB64.clear();
         std::string salt = fromBase64(saltB64);
+        saltB64.clear();
         std::string result = "";
         std::string prefix = "";
-//        stringstream ss;
-//        ss << numBytes;
-//        string str = ss.str();
-//        m_pParent->getLog()->debug(("loop until len "+str).c_str());
         while (result.length() < numBytes) {
             result += (round(prefix, passphrase, algorithm, type, c, salt));
             prefix += ('\0');
-//            m_pParent->getLog()->debug("produceKeyByPassword loop finished ");
         }
         if (result.length() > numBytes) {
             result = result.substr(0, numBytes);
         }
-//        m_pParent->getLog()->debug("produceKeyByPassword finished");
+        salt.clear();
+        passphrase.clear();
+        prefix.clear();
         return result;
     }
 

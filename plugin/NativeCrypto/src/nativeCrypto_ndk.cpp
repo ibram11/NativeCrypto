@@ -116,7 +116,6 @@ namespace webworks
             toReturn += hexChars[data[i] >> 4];
             toReturn += hexChars[data[i] & 15];
         }
-        delete[]data;
         return toReturn;
     }
 
@@ -132,7 +131,6 @@ namespace webworks
         unsigned char* data;
         this->fromB64(text, data, dataLen);
         std::string result(reinterpret_cast<const char *>(data), dataLen);
-        delete[] data;
         return result;
     }
 
@@ -350,7 +348,6 @@ namespace webworks
         hu_AESKeyDestroy(params, &key, this->context());
         hu_AESParamsDestroy(&params, this->context());
         std::string result(reinterpret_cast<char *>(resultBytes), blockStr.length());
-        delete[]resultBytes;
 //        m_pParent->getLog()->debug(("getAes128ecb result: "+ result).data());
         return result;
     }
@@ -361,7 +358,6 @@ namespace webworks
         unsigned char digest[digestLen];
         RIPEMD160(reinterpret_cast<const unsigned char *>(toHash.data()), toHash.length(), digest);
         std::string result(reinterpret_cast<char *>(digest), digestLen);
-        delete[]digest;
         return result;
     }
 
@@ -373,23 +369,23 @@ namespace webworks
         int len = BN_dec2bn(&modulus, n.data());
         if (len==0){
             m_pParent->getLog()->error("wrong modulus");
-            BN_free(&modulus);
+            BN_free(modulus);
             return "ERROR wrong modulus";
         }
         rsa->n = BN_new();
         BN_copy(rsa->n, modulus);
-        BN_free(&modulus);
+        BN_free(modulus);
         n.clear();
 
         len= BN_dec2bn(&exponent, e.data());
         if (len==0){
            m_pParent->getLog()->error("wrong exp");
-           BN_free(&exponent);
+           BN_free(exponent);
            return "ERROR wrong exp";
         }
         rsa->e = BN_new();
         BN_copy(rsa->e, exponent);
-        BN_free(&exponent);
+        BN_free(exponent);
         e.clear();
 
         int maxSize = RSA_size(rsa);
@@ -397,7 +393,6 @@ namespace webworks
         unsigned char * toEncrypt=(unsigned char*)input.data();
         int operationResult=RSA_public_encrypt(input.length(), toEncrypt, encrypted, rsa, RSA_NO_PADDING);
         input.clear();
-        delete[] toEncrypt;
         if(operationResult ==-1){
                 m_pParent->getLog()->debug("encrypt error");
                 RSA_free(rsa);
@@ -413,82 +408,80 @@ namespace webworks
         int len = BN_dec2bn(&modulus, n.data());
         if (len==0){
             m_pParent->getLog()->error("wrong modulus");
-            BN_free(&modulus);
+            BN_free(modulus);
             return "ERROR wrong modulus";
         }
         rsa->n = BN_new();
         BN_copy(rsa->n, modulus);
-        BN_free(&modulus);
+        BN_free(modulus);
         n.clear();
 
         BIGNUM *exponent = BN_new();
         len= BN_dec2bn(&exponent, e.data());
         if (len==0){
             m_pParent->getLog()->error("wrong exp");
-            BN_free(&exponent);
+            BN_free(exponent);
             return "ERROR wrong exp";
         }
         rsa->e = BN_new();
         BN_copy(rsa->e, exponent);
-        BN_free(&exponent);
+        BN_free(exponent);
         e.clear();
 
         BIGNUM *pNb = BN_new();
         len= BN_dec2bn(&pNb, p.data());
         if (len==0){
             m_pParent->getLog()->error("wrong p");
-            BN_free(&pNb);
+            BN_free(pNb);
             return "ERROR wrong p";
         }
         rsa->p = BN_new();
         BN_copy(rsa->p, pNb);
-        BN_free(&pNb);
+        BN_free(pNb);
         p.clear();
 
         BIGNUM *qNb = BN_new();
         len= BN_dec2bn(&qNb, q.data());
         if (len==0){
             m_pParent->getLog()->error("wrong q");
-            BN_free(&qNb);
+            BN_free(qNb);
             return "ERROR wrong q";
         }
         rsa->q = BN_new();
         BN_copy(rsa->q, qNb);
-        BN_free(&qNb);
+        BN_free(qNb);
         q.clear();
 
         BIGNUM *dNb = BN_new();
         len= BN_dec2bn(&dNb, d.data());
         if (len==0){
             m_pParent->getLog()->error("wrong d");
-            BN_free(&dNb);
+            BN_free(dNb);
             return "ERROR wrong d";
         }
         rsa->d = BN_new();
         BN_copy(rsa->d, dNb);
-        BN_free(&dNb);
+        BN_free(dNb);
         d.clear();
 
         BIGNUM *uNb = BN_new();
         len= BN_dec2bn(&uNb, iqmodp.data());
         if (len==0){
             m_pParent->getLog()->error("wrong u");
-            BN_free(&uNb);
+            BN_free(uNb);
             return "ERROR wrong u";
         }
         rsa->iqmp = BN_new();
         BN_copy(rsa->iqmp, dNb);
-        BN_free(&uNb);
+        BN_free(uNb);
         iqmodp.clear();
 
-        int maxSize = RSA_size(rsa);
-        unsigned char * decrypted =new unsigned char[maxSize];
+        unsigned char * decrypted =new unsigned char[RSA_size(rsa)];
         unsigned char * toDecrypt =(unsigned char*)input.data();
         RSA_blinding_on(rsa,NULL);
         int operationResult=RSA_private_decrypt(input.length(), toDecrypt, decrypted, rsa, RSA_NO_PADDING);
         RSA_blinding_off(rsa);
         input.clear();
-        delete[] toDecrypt;
         if(operationResult ==-1){
             m_pParent->getLog()->debug("encrypt error");
             RSA_free(rsa);

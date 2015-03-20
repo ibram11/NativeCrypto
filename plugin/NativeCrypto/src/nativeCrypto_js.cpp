@@ -108,7 +108,7 @@ string NativeCryptoJS::InvokeMethod(const string& command)
 
     std::string result = "";
 
-//    m_pLogger->debug(strCommand.c_str());
+    m_pLogger->debug(strCommand.c_str());
 
     if (strCommand == "ping") {
         return m_pNativeCryptoController->ping();
@@ -142,8 +142,6 @@ string NativeCryptoJS::InvokeMethod(const string& command)
         result = m_pNativeCryptoController->toBase64(result);
     }
     if (strCommand == "rsaEncrypt") {
-        std::string nLen=arg.substr(0, arg.find_first_of(" "));
-        arg=arg.substr(arg.find_first_of(" ")+1);
         std::string e=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
         std::string n=arg.substr(0, arg.find_first_of(" "));
@@ -209,7 +207,6 @@ string NativeCryptoJS::InvokeMethod(const string& command)
 //        char buffer[256]; // make sure this is big enough!!!
 //        snprintf(buffer, sizeof(buffer), "(%f)", time);
 //        this->getLog()->debug(buffer);
-        command.clear();
         strCommand.clear();
         callbackId.clear();
         return result;

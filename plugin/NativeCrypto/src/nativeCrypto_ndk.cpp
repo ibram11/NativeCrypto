@@ -116,6 +116,7 @@ namespace webworks
             toReturn += hexChars[data[i] >> 4];
             toReturn += hexChars[data[i] & 15];
         }
+        delete[]data;
         return toReturn;
     }
 
@@ -360,6 +361,7 @@ namespace webworks
         unsigned char digest[digestLen];
         RIPEMD160(reinterpret_cast<const unsigned char *>(toHash.data()), toHash.length(), digest);
         std::string result(reinterpret_cast<char *>(digest), digestLen);
+        delete[]digest;
         return result;
     }
 
@@ -408,11 +410,6 @@ namespace webworks
     std::string NativeCryptoNDK::decodeRsa(std::string e, std::string n, std::string d, std::string p, std::string q, std::string iqmodp, std::string input){
         RSA* rsa = RSA_new();
         BIGNUM *modulus = BN_new();
-        BIGNUM *exponent = BN_new();
-        BIGNUM *pNb = BN_new();
-        BIGNUM *qNb = BN_new();
-        BIGNUM *dNb = BN_new();
-        BIGNUM *uNb = BN_new();
         int len = BN_dec2bn(&modulus, n.data());
         if (len==0){
             m_pParent->getLog()->error("wrong modulus");
@@ -424,6 +421,7 @@ namespace webworks
         BN_free(&modulus);
         n.clear();
 
+        BIGNUM *exponent = BN_new();
         len= BN_dec2bn(&exponent, e.data());
         if (len==0){
             m_pParent->getLog()->error("wrong exp");
@@ -435,6 +433,7 @@ namespace webworks
         BN_free(&exponent);
         e.clear();
 
+        BIGNUM *pNb = BN_new();
         len= BN_dec2bn(&pNb, p.data());
         if (len==0){
             m_pParent->getLog()->error("wrong p");
@@ -446,6 +445,7 @@ namespace webworks
         BN_free(&pNb);
         p.clear();
 
+        BIGNUM *qNb = BN_new();
         len= BN_dec2bn(&qNb, q.data());
         if (len==0){
             m_pParent->getLog()->error("wrong q");
@@ -457,6 +457,7 @@ namespace webworks
         BN_free(&qNb);
         q.clear();
 
+        BIGNUM *dNb = BN_new();
         len= BN_dec2bn(&dNb, d.data());
         if (len==0){
             m_pParent->getLog()->error("wrong d");
@@ -468,6 +469,7 @@ namespace webworks
         BN_free(&dNb);
         d.clear();
 
+        BIGNUM *uNb = BN_new();
         len= BN_dec2bn(&uNb, iqmodp.data());
         if (len==0){
             m_pParent->getLog()->error("wrong u");

@@ -405,7 +405,7 @@ namespace webworks
         return toHex(encrypted, maxSize);
     }
 
-    std::string NativeCryptoNDK::decodeRsa(std::string e, std::string n, std::string d, std::string p, std::string q, std::string u, std::string input){
+    std::string NativeCryptoNDK::decodeRsa(std::string e, std::string n, std::string d, std::string p, std::string q, std::string iqmodp, std::string input){
         RSA* rsa = RSA_new();
         BIGNUM *modulus = BN_new();
         BIGNUM *exponent = BN_new();
@@ -468,7 +468,7 @@ namespace webworks
         BN_free(&dNb);
         d.clear();
 
-        len= BN_dec2bn(&uNb, u.data());
+        len= BN_dec2bn(&uNb, iqmodp.data());
         if (len==0){
             m_pParent->getLog()->error("wrong u");
             BN_free(&uNb);
@@ -477,7 +477,7 @@ namespace webworks
         rsa->iqmp = BN_new();
         BN_copy(rsa->iqmp, dNb);
         BN_free(&uNb);
-        u.clear();
+        iqmodp.clear();
 
         int maxSize = RSA_size(rsa);
         unsigned char * decrypted =new unsigned char[maxSize];

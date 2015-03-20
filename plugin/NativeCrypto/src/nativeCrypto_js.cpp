@@ -162,10 +162,10 @@ string NativeCryptoJS::InvokeMethod(const string& command)
         arg=arg.substr(arg.find_first_of(" ")+1);
         std::string q=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
-        std::string u=arg.substr(0, arg.find_first_of(" "));
+        std::string iqmodp=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);
         std::string mB64=arg.substr(0, arg.find_first_of(" "));
-        result = m_pNativeCryptoController->decodeRsa( e, n, d, p, q, u, m_pNativeCryptoController->fromBase64(mB64));
+        result = m_pNativeCryptoController->decodeRsa( e, n, d, p, q, iqmodp, m_pNativeCryptoController->fromBase64(mB64));
     }
     if (strCommand == "aes128ecb") {
         std::string keyB64=arg.substr(0, arg.find_first_of(" "));

@@ -152,6 +152,18 @@ var _self = {},
         return result;
     };
 
+    _self.rsaVerify = function (input) {
+        var result,
+            success = function (data, response) {
+                result = data;
+            },
+            fail = function (data, response) {
+                console.log("Error: " + data);
+            };
+        exec(success, fail, _ID, "rsaVerify", {input: input});
+        return result;
+    };
+
     _self.produceKeyByPassword = function (input) {
         var result,
             success = function (data, response) {

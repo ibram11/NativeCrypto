@@ -492,7 +492,46 @@ namespace webworks
         return toHex(decrypted, operationResult);
     }
 
-    std::string NativeCryptoNDK::signRsa(std::string e, std::string n, std::string d, std::string input){
+    std::string NativeCryptoNDK::verifyRsa(std::string e, std::string n, std::string input){
+        RSA* rsa = RSA_new();
+        BIGNUM *modulus = BN_new();
+        int len = BN_dec2bn(&modulus, n.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong modulus");
+            BN_free(modulus);
+            return "ERROR wrong modulus";
+        }
+        rsa->n = BN_new();
+        BN_copy(rsa->n, modulus);
+        BN_free(modulus);
+        n.clear();
+        BIGNUM *exponent = BN_new();
+        len= BN_dec2bn(&exponent, e.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong exp");
+            BN_free(exponent);
+            return "ERROR wrong exp";
+        }
+        rsa->e = BN_new();
+        BN_copy(rsa->e, exponent);
+        BN_free(exponent);
+        e.clear();
+
+        int maxSize = RSA_size(rsa);
+        unsigned char * result =new unsigned char[maxSize];
+        unsigned char * toVerify =(unsigned char*)input.data();
+        int operationResult=RSA_public_decrypt(input.length(), toVerify, result, rsa, RSA_NO_PADDING);
+        input.clear();
+        if (-1==operationResult){
+            m_pParent->getLog()->debug("ERROR verify");
+            RSA_free(rsa);
+            return "ERROR verify";
+        }
+        RSA_free(rsa);
+        return toHex(result, operationResult);
+    }
+
+    std::string NativeCryptoNDK::signRsa(std::string e, std::string n, std::string d, std::string p, std::string q, std::string input){
         RSA* rsa = RSA_new();
         BIGNUM *modulus = BN_new();
         int len = BN_dec2bn(&modulus, n.data());
@@ -529,6 +568,30 @@ namespace webworks
         BN_copy(rsa->e, exponent);
         BN_free(exponent);
         e.clear();
+
+        BIGNUM *pNb = BN_new();
+        len= BN_dec2bn(&pNb, p.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong p");
+            BN_free(pNb);
+            return "ERROR wrong p";
+        }
+        rsa->p = BN_new();
+        BN_copy(rsa->p, pNb);
+        BN_free(pNb);
+        p.clear();
+
+        BIGNUM *qNb = BN_new();
+        len= BN_dec2bn(&qNb, q.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong q");
+            BN_free(qNb);
+            return "ERROR wrong q";
+        }
+        rsa->q = BN_new();
+        BN_copy(rsa->q, qNb);
+        BN_free(qNb);
+        q.clear();
 
         int maxSize = RSA_size(rsa);
         unsigned char * signedOutput =new unsigned char[maxSize];

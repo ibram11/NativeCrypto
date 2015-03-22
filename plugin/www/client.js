@@ -138,6 +138,18 @@ var _self = {},
             };
         exec(success, fail, _ID, "rsaEncrypt", { input: input });
         return result;
+        };
+
+    _self.rsaSign = function (input) {
+        var result,
+            success = function (data, response) {
+                result = data;
+            },
+            fail = function (data, response) {
+                console.log("Error: " + data);
+            };
+        exec(success, fail, _ID, "rsaSign", {input: input});
+        return result;
     };
 
     _self.produceKeyByPassword = function (input) {

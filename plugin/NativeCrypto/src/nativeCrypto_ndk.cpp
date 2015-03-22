@@ -31,12 +31,13 @@
 #include <sbreturn.h>
 #include <QByteArray>
 #include <QString>
+ #include <openssl/err.h>
 #include "nativeCrypto_ndk.hpp"
 #include "nativeCrypto_js.hpp"
 #include "util/util.hpp"
 #include <hurandom.h>
 #include <openssl/ripemd.h>
-
+#include <openssl/objects.h>
 #include "openssl/rsa.h"
 
 namespace webworks
@@ -364,7 +365,6 @@ namespace webworks
     std::string NativeCryptoNDK::encodeRsa(std::string e, std::string n, std::string input){
         RSA* rsa = RSA_new();
         BIGNUM *modulus = BN_new();
-        BIGNUM *exponent = BN_new();
 
         int len = BN_dec2bn(&modulus, n.data());
         if (len==0){
@@ -377,6 +377,7 @@ namespace webworks
         BN_free(modulus);
         n.clear();
 
+        BIGNUM *exponent = BN_new();
         len= BN_dec2bn(&exponent, e.data());
         if (len==0){
            m_pParent->getLog()->error("wrong exp");
@@ -489,6 +490,58 @@ namespace webworks
         }
         RSA_free(rsa);
         return toHex(decrypted, operationResult);
+    }
+
+    std::string NativeCryptoNDK::signRsa(std::string e, std::string n, std::string d, std::string input){
+        RSA* rsa = RSA_new();
+        BIGNUM *modulus = BN_new();
+        int len = BN_dec2bn(&modulus, n.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong modulus");
+            BN_free(modulus);
+            return "ERROR wrong modulus";
+        }
+        rsa->n = BN_new();
+        BN_copy(rsa->n, modulus);
+        BN_free(modulus);
+        n.clear();
+
+        BIGNUM *dNb = BN_new();
+        len= BN_dec2bn(&dNb, d.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong d");
+            BN_free(dNb);
+            return "ERROR wrong d";
+        }
+        rsa->d = BN_new();
+        BN_copy(rsa->d, dNb);
+        BN_free(dNb);
+        d.clear();
+
+        BIGNUM *exponent = BN_new();
+        len= BN_dec2bn(&exponent, e.data());
+        if (len==0){
+            m_pParent->getLog()->error("wrong exp");
+            BN_free(exponent);
+            return "ERROR wrong exp";
+        }
+        rsa->e = BN_new();
+        BN_copy(rsa->e, exponent);
+        BN_free(exponent);
+        e.clear();
+
+        int maxSize = RSA_size(rsa);
+        unsigned char * signedOutput =new unsigned char[maxSize];
+        unsigned char * toSign =(unsigned char*)input.data();
+        int operationResult=RSA_private_encrypt(input.length(), toSign, signedOutput, rsa, RSA_NO_PADDING);
+        input.clear();
+        if (-1==operationResult){
+            m_pParent->getLog()->debug("ERROR sign");
+            RSA_free(rsa);
+            return "ERROR sign";
+        }
+        RSA_free(rsa);
+        return toHex(signedOutput, operationResult);
     }
 
 /*

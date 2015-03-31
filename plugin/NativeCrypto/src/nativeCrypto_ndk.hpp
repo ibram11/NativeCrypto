@@ -58,6 +58,7 @@ namespace webworks
         std::string encodeRsa(std::string e, std::string n, std::string input);
         std::string signRsa(std::string e, std::string n, std::string d, std::string p, std::string q, std::string input);
         std::string verifyRsa(std::string e, std::string n, std::string input);
+        std::string generateRsa(int length, std::string e);
         friend class AESParams;
         friend class AESKey;
         friend class AESContext;

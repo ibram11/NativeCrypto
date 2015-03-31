@@ -492,6 +492,48 @@ namespace webworks
         return toHex(decrypted, operationResult);
     }
 
+    std::string  NativeCryptoNDK::generateRsa(int length, std::string e){
+        BIGNUM *exponent = BN_new();
+        int operationResult= BN_hex2bn(&exponent, e.data());
+        if (operationResult==0){
+            m_pParent->getLog()->error("wrong exp");
+            BN_free(exponent);
+            return "ERROR wrong exp";
+        }
+        RSA* rsa = RSA_new();
+        operationResult=RSA_generate_key_ex(rsa, length, exponent, NULL);
+        if (operationResult!=1){
+            m_pParent->getLog()->error("error generate");
+            RSA_free(rsa);
+            return "ERROR generate";
+        }
+        stringstream s;
+        s<<BN_bn2hex(rsa->p);
+        m_pParent->getLog()->debug(BN_bn2hex(rsa->p));
+        s<<" ";
+        s<<BN_bn2hex(rsa->q);
+        m_pParent->getLog()->debug(BN_bn2hex(rsa->q));
+        s<<" ";
+        s<<BN_bn2hex(rsa->n);
+        m_pParent->getLog()->debug(BN_bn2hex(rsa->n));
+        s<<" ";
+        s<<BN_bn2hex(rsa->d);
+        m_pParent->getLog()->debug(BN_bn2hex(rsa->d));
+        s<<" ";
+        s<<BN_bn2hex(rsa->iqmp);
+        m_pParent->getLog()->debug(BN_bn2hex(rsa->iqmp));
+        s<<" ";
+        s<<BN_bn2hex(rsa->dmp1);
+        m_pParent->getLog()->debug(BN_bn2hex(rsa->dmp1));
+        s<<" ";
+        s<<BN_bn2hex(rsa->dmq1);
+        m_pParent->getLog()->debug(BN_bn2hex(rsa->dmq1));
+        s<<" ";
+        s<<BN_bn2hex(rsa->e);
+        m_pParent->getLog()->debug(BN_bn2hex(rsa->e));
+        return s.str();
+    }
+
     std::string NativeCryptoNDK::verifyRsa(std::string e, std::string n, std::string input){
         RSA* rsa = RSA_new();
         BIGNUM *modulus = BN_new();

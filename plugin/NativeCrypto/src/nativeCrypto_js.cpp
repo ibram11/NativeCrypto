@@ -141,6 +141,12 @@ string NativeCryptoJS::InvokeMethod(const string& command)
         result = m_pNativeCryptoController->getMd5(m_pNativeCryptoController->fromBase64(arg));
         result = m_pNativeCryptoController->toBase64(result);
     }
+    if (strCommand == "rsaGenerate") {
+        std::string length=arg.substr(0, arg.find_first_of(" "));
+        arg=arg.substr(arg.find_first_of(" ")+1);
+        std::string e=arg.substr(0, arg.find_first_of(" "));
+        result = m_pNativeCryptoController->generateRsa(int(atoi(length.c_str())), e);
+    }
     if (strCommand == "rsaVerify") {
         std::string e=arg.substr(0, arg.find_first_of(" "));
         arg=arg.substr(arg.find_first_of(" ")+1);

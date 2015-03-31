@@ -40,6 +40,11 @@ module.exports = {
         var input = JSON.parse(decodeURIComponent(args.input));
         result.ok(nativeCrypto.getInstance().rsaEncrypt(result.callbackId, input.e, input.n, input.message), false);
     },
+    rsaGenerate: function (success, fail, args, env) {
+        var result = new PluginResult(args, env);
+        var input = JSON.parse(decodeURIComponent(args.input));
+        result.ok(nativeCrypto.getInstance().rsaGenerate(result.callbackId, input.length, input.e), false);
+    },
     rsaSign: function (success, fail, args, env) {
         var result = new PluginResult(args, env);
         var input = JSON.parse(decodeURIComponent(args.input));
@@ -157,6 +162,9 @@ JNEXT.NativeCrypto = function () {
     };
     self.rsaDecrypt = function (callbackId, e, n, d, p, q, iqmodp, message) {
         return JNEXT.invoke(self.m_id, "rsaDecrypt " + callbackId + " " + e + " " + n + " " + d + " " + p + " " + q + " " + iqmodp + " " + message);
+    };
+    self.rsaGenerate = function (callbackId, length, e) {
+        return JNEXT.invoke(self.m_id, "rsaGenerate " + callbackId + " " + length + " " + e);
     };
     self.hashMd5 = function (callbackId, input) {
         return JNEXT.invoke(self.m_id, "hashMd5 " + callbackId + " " + input );
